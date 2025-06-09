@@ -4,19 +4,12 @@
         <header class="App-header">
             <h1>New Price Book Entry</h1>
             <form action="{{ url_for('create_pricebook_entry') }}" method="post">
+                {% from 'macros.html' import lookup %}
                 <p>
-                    <select name="product_id">
-                        {% for product in products %}
-                            <option value="{{ product.id }}">{{ product.name }}</option>
-                        {% endfor %}
-                    </select>
+                    {{ lookup('product_id', products, 'name') }}
                 </p>
                 <p>
-                    <select name="pricebook_id">
-                        {% for pricebook in pricebooks %}
-                            <option value="{{ pricebook.id }}">{{ pricebook.name }}</option>
-                        {% endfor %}
-                    </select>
+                    {{ lookup('pricebook_id', pricebooks, 'name') }}
                 </p>
                 <p><input type="number" step="0.01" name="unit_price" placeholder="Unit Price"></p>
                 <p><button type="submit">Create</button></p>

@@ -4,19 +4,12 @@
         <header class="App-header">
             <h1>New Quote Line Item</h1>
             <form action="{{ url_for('create_quote_line_item') }}" method="post">
+                {% from 'macros.html' import lookup %}
                 <p>
-                    <select name="quote_id">
-                        {% for quote in quotes %}
-                            <option value="{{ quote.id }}">Quote {{ quote.id }}</option>
-                        {% endfor %}
-                    </select>
+                    {{ lookup('quote_id', quotes, '', '', 'Quote ') }}
                 </p>
                 <p>
-                    <select name="product_id">
-                        {% for product in products %}
-                            <option value="{{ product.id }}">{{ product.name }}</option>
-                        {% endfor %}
-                    </select>
+                    {{ lookup('product_id', products, 'name') }}
                 </p>
                 <p><input type="number" name="quantity" placeholder="Quantity" value="1"></p>
                 <p><input type="number" step="0.01" name="price" placeholder="Price"></p>

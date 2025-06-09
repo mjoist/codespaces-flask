@@ -8,13 +8,9 @@
                 <p><input type="email" name="email" placeholder="Email"></p>
                 <p><input type="text" name="phone" placeholder="Phone"></p>
                 <p><input type="text" name="title" placeholder="Title"></p>
+                {% from 'macros.html' import lookup %}
                 <p>
-                    <select name="account_id">
-                        <option value="">-- Account --</option>
-                        {% for account in accounts %}
-                            <option value="{{ account.id }}">{{ account.name }}</option>
-                        {% endfor %}
-                    </select>
+                    {{ lookup('account_id', accounts, 'name') }}
                 </p>
                 <p><button type="submit">Create</button></p>
             </form>

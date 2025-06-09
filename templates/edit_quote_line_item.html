@@ -2,19 +2,12 @@
 {% block content %}
 <h1>Edit Quote Line Item</h1>
 <form action="{{ url_for('update_quote_line_item', item_id=item.id) }}" method="post">
+{% from 'macros.html' import lookup %}
 <p>
-<select name="quote_id">
-{% for quote in quotes %}
-<option value="{{ quote.id }}" {% if item.quote_id==quote.id %}selected{% endif %}>Quote {{ quote.id }}</option>
-{% endfor %}
-</select>
+    {{ lookup('quote_id', quotes, '', item.quote_id, 'Quote ') }}
 </p>
 <p>
-<select name="product_id">
-{% for product in products %}
-<option value="{{ product.id }}" {% if item.product_id==product.id %}selected{% endif %}>{{ product.name }}</option>
-{% endfor %}
-</select>
+    {{ lookup('product_id', products, 'name', item.product_id) }}
 </p>
 <p><input type="number" name="quantity" value="{{ item.quantity }}"></p>
 <p><input type="number" step="0.01" name="price" value="{{ item.price }}"></p>
