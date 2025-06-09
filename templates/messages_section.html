@@ -27,9 +27,9 @@
             feed: query => {
               return fetch('/api/users?q=' + encodeURIComponent(query))
                 .then(r => r.json())
-                .then(data => data.users);
+                .then(data => data.users.map(u => '@' + u));
             },
-            minimumCharacters: 1
+            minimumCharacters: 0
           }
         ]
       }
