@@ -1,18 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="App">
-        <header class="App-header">
-            <h1>New Quote</h1>
-            <form action="{{ url_for('create_quote') }}" method="post" class="two-column">
-                {% from 'macros.html' import lookup %}
-                <p>
-                    {{ lookup('deal_id', deals, 'name') }}
-                </p>
-                <p><input type="number" step="0.01" name="total" placeholder="Total"></p>
-                <p><input type="date" name="expiration_date" placeholder="Expiration"></p>
-                <p><button type="submit">Create</button></p>
-            </form>
-            <p><a class="App-link" href="{{ url_for('list_quotes') }}">Back</a></p>
-        </header>
+<h1>New Quote</h1>
+<form action="{{ url_for('create_quote') }}" method="post" class="row g-3">
+    {% from 'macros.html' import lookup %}
+    <div class="col-md-6">
+        <label class="form-label">Deal</label>
+        {{ lookup('deal_id', deals, 'name') }}
     </div>
+    <div class="col-md-6">
+        <label class="form-label">Total</label>
+        <input type="number" step="0.01" name="total" class="form-control">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Expiration</label>
+        <input type="date" name="expiration_date" class="form-control">
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a class="btn btn-secondary" href="{{ url_for('list_quotes') }}">Back</a>
+    </div>
+</form>
 {% endblock %}

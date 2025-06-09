@@ -1344,6 +1344,8 @@ def api_users():
     if q:
         query = query.filter(User.username.ilike(f"%{q}%"))
     users = query.limit(10).all()
+
+
     return {"users": [u.username for u in users]}
 
 

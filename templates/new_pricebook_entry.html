@@ -1,20 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="App">
-        <header class="App-header">
-            <h1>New Price Book Entry</h1>
-            <form action="{{ url_for('create_pricebook_entry') }}" method="post">
-                {% from 'macros.html' import lookup %}
-                <p>
-                    {{ lookup('product_id', products, 'name') }}
-                </p>
-                <p>
-                    {{ lookup('pricebook_id', pricebooks, 'name') }}
-                </p>
-                <p><input type="number" step="0.01" name="unit_price" placeholder="Unit Price"></p>
-                <p><button type="submit">Create</button></p>
-            </form>
-            <p><a class="App-link" href="{{ url_for('list_pricebook_entries') }}">Back</a></p>
-        </header>
+<h1>New Price Book Entry</h1>
+<form action="{{ url_for('create_pricebook_entry') }}" method="post" class="row g-3">
+    {% from 'macros.html' import lookup %}
+    <div class="col-md-6">
+        <label class="form-label">Product</label>
+        {{ lookup('product_id', products, 'name') }}
     </div>
+    <div class="col-md-6">
+        <label class="form-label">Pricebook</label>
+        {{ lookup('pricebook_id', pricebooks, 'name') }}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Unit Price</label>
+        <input type="number" step="0.01" name="unit_price" class="form-control">
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a class="btn btn-secondary" href="{{ url_for('list_pricebook_entries') }}">Back</a>
+    </div>
+</form>
 {% endblock %}

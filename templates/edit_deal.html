@@ -1,21 +1,34 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Edit Deal</h1>
-<form action="{{ url_for('update_deal', deal_id=deal.id) }}" method="post" class="two-column">
-<p><input type="text" name="name" value="{{ deal.name }}" required></p>
-<p><input type="number" step="0.01" name="amount" value="{{ deal.amount }}"></p>
-<p>
-    <select name="stage">
-        {% for s in stages %}
-            <option value="{{ s.value }}" {% if s.value == deal.stage %}selected{% endif %}>{{ s.value }}</option>
-        {% endfor %}
-    </select>
-</p>
-<p><input type="date" name="close_date" value="{{ deal.close_date }}"></p>
-{% from 'macros.html' import lookup %}
-<p>
-    {{ lookup('account_id', accounts, 'name', deal.account_id) }}
-</p>
-<p><button type="submit">Update</button></p>
+<form action="{{ url_for('update_deal', deal_id=deal.id) }}" method="post" class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Name *</label>
+        <input type="text" name="name" class="form-control" value="{{ deal.name }}" required>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Amount</label>
+        <input type="number" step="0.01" name="amount" class="form-control" value="{{ deal.amount }}">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Stage</label>
+        <select name="stage" class="form-select">
+            {% for s in stages %}
+                <option value="{{ s.value }}" {% if s.value == deal.stage %}selected{% endif %}>{{ s.value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Close Date</label>
+        <input type="date" name="close_date" class="form-control" value="{{ deal.close_date }}">
+    </div>
+    {% from 'macros.html' import lookup %}
+    <div class="col-md-6">
+        <label class="form-label">Account</label>
+        {{ lookup('account_id', accounts, 'name', deal.account_id) }}
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Update</button>
+    </div>
 </form>
 {% endblock %}
