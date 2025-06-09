@@ -950,11 +950,19 @@ def logout():
 
 @app.route("/admin")
 @login_required
-def admin():
+def admin_overview():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    return render_template("admin_overview.html", title="Admin Overview")
+
+
+@app.route("/admin/users")
+@login_required
+def admin_users():
     if not current_user.is_admin:
         return redirect(url_for("dashboard"))
     users = User.query.all()
-    return render_template("admin.html", users=users, title="Admin")
+    return render_template("admin.html", users=users, title="User Administration")
 
 
 @app.route("/admin/users/create", methods=["POST"])
@@ -967,7 +975,7 @@ def create_user():
     user = User(username=username, password_hash=password)
     db.session.add(user)
     db.session.commit()
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
@@ -978,7 +986,7 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
     db.session.commit()
-    return redirect(url_for("admin"))
+    return redirect(url_for("admin_users"))
 
 
 @app.route("/admin/statuses")
