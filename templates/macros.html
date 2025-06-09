@@ -1,0 +1,9 @@
+{% macro lookup(name, records, attr='name', value='', prefix='') %}
+<input type="text" name="{{ name }}" list="list-{{ name }}" value="{{ value }}" class="form-control" placeholder="Search...">
+<datalist id="list-{{ name }}">
+    <option value=""></option>
+    {% for record in records %}
+        <option value="{{ record.id }}" label="{{ prefix }}{{ record|attr(attr) if attr else record.id }}"></option>
+    {% endfor %}
+</datalist>
+{% endmacro %}

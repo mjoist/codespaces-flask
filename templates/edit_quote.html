@@ -2,12 +2,9 @@
 {% block content %}
 <h1>Edit Quote</h1>
 <form action="{{ url_for('update_quote', quote_id=quote.id) }}" method="post" class="two-column">
+{% from 'macros.html' import lookup %}
 <p>
-<select name="deal_id">
-{% for deal in deals %}
-<option value="{{ deal.id }}" {% if quote.deal_id==deal.id %}selected{% endif %}>{{ deal.name }}</option>
-{% endfor %}
-</select>
+    {{ lookup('deal_id', deals, 'name', quote.deal_id) }}
 </p>
 <p><input type="number" step="0.01" name="total" value="{{ quote.total }}"></p>
 <p><input type="date" name="expiration_date" value="{{ quote.expiration_date }}"></p>
