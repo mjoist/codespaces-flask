@@ -1,0 +1,25 @@
+<h2 id="messages">Messages</h2>
+<ul class="list-group mb-3">
+{% for m in messages %}
+<li class="list-group-item">
+    <div class="small text-muted">{{ m.user.username }} {{ m.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+    <div>{{ m.content|safe }}</div>
+</li>
+{% else %}
+<li class="list-group-item">No messages found.</li>
+{% endfor %}
+</ul>
+<form action="{{ url_for('create_message') }}" method="post" class="mb-3">
+    <input type="hidden" name="model" value="{{ model }}">
+    <input type="hidden" name="record_id" value="{{ record_id }}">
+    <textarea id="message-content" name="content" class="form-control" rows="3"></textarea>
+    <button type="submit" class="btn btn-primary mt-2">Send</button>
+</form>
+<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@35.4.0/build/ckeditor.js"></script>
+<script>
+  if (window.ClassicEditor) {
+    ClassicEditor.create(document.querySelector('#message-content'), {
+      toolbar: ['bold','italic','underline','bulletedList','numberedList']
+    }).catch(e=>{});
+  }
+</script>

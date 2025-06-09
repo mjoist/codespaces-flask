@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Notifications</h1>
+<ul class="list-group">
+{% for n in notifications %}
+<li class="list-group-item{% if not n.is_read %} fw-bold{% endif %}">
+    <a href="{{ url_for('view_notification', notif_id=n.id) }}">
+        {{ n.message.user.username }} mentioned you in {{ n.model }} {{ n.record_id }} - {{ n.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </a>
+</li>
+{% else %}
+<li class="list-group-item">No notifications found.</li>
+{% endfor %}
+</ul>
+{% endblock %}
