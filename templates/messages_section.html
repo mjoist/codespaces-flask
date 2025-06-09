@@ -19,7 +19,20 @@
 <script>
   if (window.ClassicEditor) {
     ClassicEditor.create(document.querySelector('#message-content'), {
-      toolbar: ['bold','italic','underline','bulletedList','numberedList']
+      toolbar: ['bold','italic','underline','bulletedList','numberedList'],
+      mention: {
+        feeds: [
+          {
+            marker: '@',
+            feed: query => {
+              return fetch('/api/users?q=' + encodeURIComponent(query))
+                .then(r => r.json())
+                .then(data => data.users.map(u => '@' + u));
+            },
+            minimumCharacters: 0
+          }
+        ]
+      }
     }).catch(e=>{});
   }
 </script>

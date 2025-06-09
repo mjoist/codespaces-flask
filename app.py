@@ -1335,6 +1335,18 @@ def api_get_record(model, record_id):
     return data
 
 
+@app.route("/api/users")
+@login_required
+def api_users():
+    """Return a list of usernames matching the given query."""
+    q = request.args.get("q", "")
+    query = User.query
+    if q:
+        query = query.filter(User.username.ilike(f"%{q}%"))
+    users = query.limit(10).all()
+    return {"users": [u.username for u in users]}
+
+
 with app.app_context():
     db.create_all()
     inspector = db.inspect(db.engine)
