@@ -6,6 +6,7 @@ from flask import (
     url_for,
     flash,
     session,
+    escape,
 )
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
@@ -1047,7 +1048,8 @@ def create_task():
 @app.route("/messages/create", methods=["POST"])
 @login_required
 def create_message():
-    content = request.form["content"]
+    content_raw = request.form["content"]
+    content = f"<p>{escape(content_raw)}</p>"
     model = request.form.get("model")
     record_id = request.form.get("record_id")
     message = Message(
@@ -1059,7 +1061,7 @@ def create_message():
     db.session.add(message)
     db.session.commit()
 
-    mentioned = set(re.findall(r"@(\w+)", content))
+    mentioned = set(re.findall(r"@(\w+)", content_raw))
     for username in mentioned:
         user = User.query.filter_by(username=username).first()
         if user:

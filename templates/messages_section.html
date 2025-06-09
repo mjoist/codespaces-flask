@@ -15,24 +15,3 @@
     <textarea id="message-content" name="content" class="form-control mention-enabled" rows="3"></textarea>
     <button type="submit" class="btn btn-primary mt-2">Send</button>
 </form>
-<script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@35.4.0/build/ckeditor.js"></script>
-<script>
-  if (window.ClassicEditor) {
-    ClassicEditor.create(document.querySelector('#message-content'), {
-      toolbar: ['bold','italic','underline','bulletedList','numberedList'],
-      mention: {
-        feeds: [
-          {
-            marker: '@',
-            feed: query => {
-              return fetch('/api/users?q=' + encodeURIComponent(query))
-                .then(r => r.json())
-                .then(data => data.users.map(u => '@' + u));
-            },
-            minimumCharacters: 0
-          }
-        ]
-      }
-    }).catch(e=>{});
-  }
-</script>
