@@ -2,7 +2,7 @@
 
 Welcome to your shiny new Codespace running Flask! We've got everything fired up and running for you to explore Flask.
 This project now contains a simple Customer Relationship Management (CRM) application
-built with Flask and SQLite. It allows you to create and list customers.
+built with Flask and SQLite. It allows you to manage accounts, leads and contacts.
 
 You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
 

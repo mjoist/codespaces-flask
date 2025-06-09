@@ -6,6 +6,9 @@
             <form action="{{ url_for('create_account') }}" method="post">
                 <p><input type="text" name="name" placeholder="Name" required></p>
                 <p><input type="text" name="industry" placeholder="Industry"></p>
+                <p><input type="email" name="email" placeholder="Email"></p>
+                <p><input type="text" name="phone" placeholder="Phone"></p>
+                <p><textarea name="notes" placeholder="Notes"></textarea></p>
                 <p><button type="submit">Create</button></p>
             </form>
             <p><a class="App-link" href="{{ url_for('list_accounts') }}">Back</a></p>
