@@ -14,5 +14,14 @@ To run this application:
 flask --debug run
 ```
 
+Ensure dependencies are installed with:
+
+```
+pip install -r requirements.txt
+```
+
+The requirements pin `Werkzeug<3` to avoid an incompatibility between
+Flask-Login and newer Werkzeug releases.
+
 On first launch the application will create an SQLite database file named
 `crm.db` in the project directory.
