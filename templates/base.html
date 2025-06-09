@@ -15,14 +15,30 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if 'lead' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_leads') }}"><i class="bi bi-person-vcard"></i> {{ _('leads') }}</a></li>
+                    {% endif %}
+                    {% if 'account' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_accounts') }}"><i class="bi bi-building"></i> {{ _('accounts') }}</a></li>
+                    {% endif %}
+                    {% if 'contact' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_contacts') }}"><i class="bi bi-person"></i> {{ _('contacts') }}</a></li>
+                    {% endif %}
+                    {% if 'deal' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_deals') }}"><i class="bi bi-handshake"></i> {{ _('deals') }}</a></li>
+                    {% endif %}
+                    {% if 'product' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_products') }}"><i class="bi bi-box"></i> {{ _('products') }}</a></li>
+                    {% endif %}
+                    {% if 'pricebook' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_pricebooks') }}"><i class="bi bi-book"></i> {{ _('pricebooks') }}</a></li>
+                    {% endif %}
+                    {% if 'quote' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_quotes') }}"><i class="bi bi-file-earmark-text"></i> {{ _('quotes') }}</a></li>
+                    {% endif %}
+                    {% if 'task' in allowed_objects or current_user.is_admin %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('list_tasks') }}"><i class="bi bi-list-task"></i> {{ _('tasks') }}</a></li>
+                    {% endif %}
                 </ul>
                 <form class="d-flex" action="{{ url_for('global_search') }}" method="get">
                     <input class="form-control form-control-sm me-2" type="search" placeholder="{{ _('search') }}" name="q">

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ profile.name }}</h1>
+<form action="{{ url_for('update_profile_permissions', profile_id=profile.id) }}" method="post">
+<h2>Object Permissions</h2>
+<table class="table">
+<tr><th>Object</th><th>Create</th><th>Read</th><th>Update</th><th>Delete</th></tr>
+{% for key, cls in models.items() %}
+{% set perm = obj_perms.get(key) %}
+<tr>
+<td>{{ key }}</td>
+<td><input type="checkbox" name="{{ key }}_create" {% if perm and perm.can_create %}checked{% endif %}></td>
+<td><input type="checkbox" name="{{ key }}_read" {% if perm and perm.can_read %}checked{% endif %}></td>
+<td><input type="checkbox" name="{{ key }}_update" {% if perm and perm.can_update %}checked{% endif %}></td>
+<td><input type="checkbox" name="{{ key }}_delete" {% if perm and perm.can_delete %}checked{% endif %}></td>
+</tr>
+{% endfor %}
+</table>
+<h2>Field Permissions</h2>
+{% for key, cls in models.items() %}
+<h4>{{ key }}</h4>
+<table class="table">
+<tr><th>Field</th><th>Readable</th><th>Editable</th></tr>
+{% for col in cls.__table__.columns.keys() %}
+{% set fp = field_perms.get((key, col)) %}
+<tr>
+<td>{{ col }}</td>
+<td><input type="checkbox" name="{{ key }}_{{ col }}_read" {% if fp and fp.readable %}checked{% endif %}></td>
+<td><input type="checkbox" name="{{ key }}_{{ col }}_edit" {% if fp and fp.editable %}checked{% endif %}></td>
+</tr>
+{% endfor %}
+</table>
+{% endfor %}
+<p><button type="submit" class="btn btn-primary">Save</button>
+<a class="btn btn-secondary" href="{{ url_for('manage_profiles') }}">Back</a></p>
+</form>
+{% endblock %}

@@ -10,6 +10,8 @@
                 <p><input type="text" name="phone" placeholder="Phone"></p>
                 <p><input type="text" name="address" placeholder="Address"></p>
                 <p><textarea name="notes" placeholder="Notes"></textarea></p>
+                {% from 'macros.html' import lookup %}
+                <p>{{ lookup('owner_id', users, 'username', current_user.id) }}</p>
                 <p><button type="submit">Create</button></p>
             </form>
             <p><a class="App-link" href="{{ url_for('list_accounts') }}">Back</a></p>

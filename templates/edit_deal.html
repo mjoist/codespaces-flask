@@ -16,6 +16,7 @@
 <p>
     {{ lookup('account_id', accounts, 'name', deal.account_id) }}
 </p>
+<p>{{ lookup('owner_id', users, 'username', deal.owner_id) }}</p>
 <p><button type="submit">Update</button></p>
 </form>
 {% endblock %}

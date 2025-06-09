@@ -83,6 +83,16 @@ def inject_notification_count():
     return {"unread_notifications": count}
 
 
+@app.context_processor
+def inject_allowed_objects():
+    allowed = set()
+    if current_user.is_authenticated and current_user.profile:
+        for perm in current_user.profile.object_permissions:
+            if perm.can_read:
+                allowed.add(perm.model)
+    return {"allowed_objects": allowed}
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -357,6 +367,41 @@ def can_view_record(user, owner_id, shares):
     return False
 
 
+def has_object_permission(user, model, action):
+    if user.is_admin:
+        return True
+    if not user.profile:
+        return False
+    perm = ObjectPermission.query.filter_by(profile_id=user.profile_id, model=model).first()
+    if not perm:
+        return False
+    return getattr(perm, f"can_{action}", False)
+
+
+def can_view_field(user, model, field, edit=False):
+    if user.is_admin:
+        return True
+    if not user.profile:
+        return False
+    perm = FieldPermission.query.filter_by(profile_id=user.profile_id, model=model, field=field).first()
+    if not perm:
+        return False
+    return perm.editable if edit else perm.readable
+
+
+def require_object_perm(model, action):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not has_object_permission(current_user, model, action):
+                return redirect(url_for("dashboard"))
+            return func(*args, **kwargs)
+
+        return login_required(wrapper)
+
+    return decorator
+
+
 @app.before_request
 def require_login():
     if (
@@ -388,6 +433,7 @@ def dashboard():
 
 
 @app.route("/leads")
+@require_object_perm("lead", "read")
 def list_leads():
     q = request.args.get("q", "")
     query = Lead.query
@@ -407,6 +453,7 @@ def list_leads():
 
 
 @app.route("/leads/kanban")
+@require_object_perm("lead", "read")
 def leads_kanban():
     statuses = [s.value for s in StatusOption.query.filter_by(model="lead").all()]
     columns = {s: Lead.query.filter_by(status=s).all() for s in statuses}
@@ -416,12 +463,20 @@ def leads_kanban():
 
 
 @app.route("/leads/new")
+@require_object_perm("lead", "create")
 def new_lead():
     statuses = StatusOption.query.filter_by(model="lead").all()
-    return render_template("new_lead.html", statuses=statuses, title="New Lead")
+    users = User.query.all()
+    return render_template(
+        "new_lead.html",
+        statuses=statuses,
+        users=users,
+        title="New Lead",
+    )
 
 
 @app.route("/leads/create", methods=["POST"])
+@require_object_perm("lead", "create")
 def create_lead():
     lead = Lead(
         name=request.form["name"],
@@ -430,7 +485,7 @@ def create_lead():
         company=request.form.get("company"),
         notes=request.form.get("notes"),
         status=request.form.get("status"),
-        owner_id=current_user.id,
+        owner_id=request.form.get("owner_id") or current_user.id,
     )
     db.session.add(lead)
     db.session.commit()
@@ -438,6 +493,7 @@ def create_lead():
 
 
 @app.route("/leads/<int:lead_id>")
+@require_object_perm("lead", "read")
 def show_lead(lead_id):
     lead = Lead.query.get_or_404(lead_id)
     if not can_view_record(current_user, lead.owner_id, LeadShare.query.filter_by(lead_id=lead_id).all()):
@@ -460,15 +516,22 @@ def show_lead(lead_id):
 
 
 @app.route("/leads/<int:lead_id>/edit")
+@require_object_perm("lead", "update")
 def edit_lead(lead_id):
     lead = Lead.query.get_or_404(lead_id)
     statuses = StatusOption.query.filter_by(model="lead").all()
+    users = User.query.all()
     return render_template(
-        "edit_lead.html", lead=lead, statuses=statuses, title="Edit Lead"
+        "edit_lead.html",
+        lead=lead,
+        statuses=statuses,
+        users=users,
+        title="Edit Lead",
     )
 
 
 @app.route("/leads/<int:lead_id>/update", methods=["POST"])
+@require_object_perm("lead", "update")
 def update_lead(lead_id):
     lead = Lead.query.get_or_404(lead_id)
     lead.name = request.form["name"]
@@ -477,6 +540,7 @@ def update_lead(lead_id):
     lead.company = request.form.get("company")
     lead.notes = request.form.get("notes")
     lead.status = request.form.get("status")
+    lead.owner_id = request.form.get("owner_id") or lead.owner_id
     db.session.commit()
     return redirect(url_for("show_lead", lead_id=lead.id))
 
@@ -506,6 +570,7 @@ def convert_lead(lead_id):
 
 
 @app.route("/accounts")
+@require_object_perm("account", "read")
 def list_accounts():
     q = request.args.get("q", "")
     query = Account.query
@@ -525,11 +590,18 @@ def list_accounts():
 
 
 @app.route("/accounts/new")
+@require_object_perm("account", "create")
 def new_account():
-    return render_template("new_account.html", title="New Account")
+    users = User.query.all()
+    return render_template(
+        "new_account.html",
+        users=users,
+        title="New Account",
+    )
 
 
 @app.route("/accounts/create", methods=["POST"])
+@require_object_perm("account", "create")
 def create_account():
     account = Account(
         name=request.form["name"],
@@ -538,7 +610,7 @@ def create_account():
         phone=request.form.get("phone"),
         address=request.form.get("address"),
         notes=request.form.get("notes"),
-        owner_id=current_user.id,
+        owner_id=request.form.get("owner_id") or current_user.id,
     )
     db.session.add(account)
     db.session.commit()
@@ -546,6 +618,7 @@ def create_account():
 
 
 @app.route("/accounts/<int:account_id>")
+@require_object_perm("account", "read")
 def show_account(account_id):
     account = Account.query.get_or_404(account_id)
     if not can_view_record(current_user, account.owner_id, AccountShare.query.filter_by(account_id=account_id).all()):
@@ -568,12 +641,20 @@ def show_account(account_id):
 
 
 @app.route("/accounts/<int:account_id>/edit")
+@require_object_perm("account", "update")
 def edit_account(account_id):
     account = Account.query.get_or_404(account_id)
-    return render_template("edit_account.html", account=account, title="Edit Account")
+    users = User.query.all()
+    return render_template(
+        "edit_account.html",
+        account=account,
+        users=users,
+        title="Edit Account",
+    )
 
 
 @app.route("/accounts/<int:account_id>/update", methods=["POST"])
+@require_object_perm("account", "update")
 def update_account(account_id):
     account = Account.query.get_or_404(account_id)
     account.name = request.form["name"]
@@ -582,6 +663,7 @@ def update_account(account_id):
     account.phone = request.form.get("phone")
     account.address = request.form.get("address")
     account.notes = request.form.get("notes")
+    account.owner_id = request.form.get("owner_id") or account.owner_id
     db.session.commit()
     return redirect(url_for("show_account", account_id=account.id))
 
@@ -619,7 +701,7 @@ def create_contact():
         phone=request.form.get("phone"),
         title=request.form.get("title"),
         account_id=request.form.get("account_id") or None,
-        owner_id=current_user.id,
+        owner_id=request.form.get("owner_id") or current_user.id,
     )
     db.session.add(contact)
     db.session.commit()
@@ -670,6 +752,7 @@ def update_contact(contact_id):
 
 
 @app.route("/deals")
+@require_object_perm("deal", "read")
 def list_deals():
     q = request.args.get("q", "")
     query = Deal.query
@@ -689,6 +772,7 @@ def list_deals():
 
 
 @app.route("/deals/kanban")
+@require_object_perm("deal", "read")
 def deals_kanban():
     statuses = [s.value for s in StatusOption.query.filter_by(model="deal").all()]
     columns = {s: Deal.query.filter_by(stage=s).all() for s in statuses}
@@ -698,15 +782,22 @@ def deals_kanban():
 
 
 @app.route("/deals/new")
+@require_object_perm("deal", "create")
 def new_deal():
     accounts = Account.query.all()
     stages = StatusOption.query.filter_by(model="deal").all()
+    users = User.query.all()
     return render_template(
-        "new_deal.html", accounts=accounts, stages=stages, title="New Deal"
+        "new_deal.html",
+        accounts=accounts,
+        stages=stages,
+        users=users,
+        title="New Deal",
     )
 
 
 @app.route("/deals/create", methods=["POST"])
+@require_object_perm("deal", "create")
 def create_deal():
     deal = Deal(
         name=request.form["name"],
@@ -722,6 +813,7 @@ def create_deal():
 
 
 @app.route("/deals/<int:deal_id>")
+@require_object_perm("deal", "read")
 def show_deal(deal_id):
     deal = Deal.query.get_or_404(deal_id)
     if not can_view_record(current_user, deal.owner_id, DealShare.query.filter_by(deal_id=deal_id).all()):
@@ -744,16 +836,24 @@ def show_deal(deal_id):
 
 
 @app.route("/deals/<int:deal_id>/edit")
+@require_object_perm("deal", "update")
 def edit_deal(deal_id):
     deal = Deal.query.get_or_404(deal_id)
     accounts = Account.query.all()
     stages = StatusOption.query.filter_by(model="deal").all()
+    users = User.query.all()
     return render_template(
-        "edit_deal.html", deal=deal, accounts=accounts, stages=stages, title="Edit Deal"
+        "edit_deal.html",
+        deal=deal,
+        accounts=accounts,
+        stages=stages,
+        users=users,
+        title="Edit Deal",
     )
 
 
 @app.route("/deals/<int:deal_id>/update", methods=["POST"])
+@require_object_perm("deal", "update")
 def update_deal(deal_id):
     deal = Deal.query.get_or_404(deal_id)
     deal.name = request.form["name"]
@@ -761,6 +861,7 @@ def update_deal(deal_id):
     deal.stage = request.form.get("stage")
     deal.close_date = request.form.get("close_date")
     deal.account_id = request.form.get("account_id") or None
+    deal.owner_id = request.form.get("owner_id") or deal.owner_id
     db.session.commit()
     return redirect(url_for("show_deal", deal_id=deal.id))
 
@@ -1575,6 +1676,75 @@ def delete_profile(profile_id):
     db.session.delete(profile)
     db.session.commit()
     return redirect(url_for("manage_profiles"))
+
+
+@app.route("/admin/profiles/<int:profile_id>")
+@login_required
+def edit_profile(profile_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    profile = SecurityProfile.query.get_or_404(profile_id)
+    models = {
+        "lead": Lead,
+        "account": Account,
+        "contact": Contact,
+        "deal": Deal,
+        "product": Product,
+        "pricebook": Pricebook,
+        "pricebook_entry": PriceBookEntry,
+        "quote": Quote,
+        "quote_line_item": QuoteLineItem,
+        "task": Task,
+    }
+    obj_perms = {p.model: p for p in profile.object_permissions}
+    field_perms = {(p.model, p.field): p for p in profile.field_permissions}
+    return render_template(
+        "profile_detail.html",
+        profile=profile,
+        models=models,
+        obj_perms=obj_perms,
+        field_perms=field_perms,
+        title=profile.name,
+    )
+
+
+@app.route("/admin/profiles/<int:profile_id>/permissions", methods=["POST"])
+@login_required
+def update_profile_permissions(profile_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    profile = SecurityProfile.query.get_or_404(profile_id)
+    models = {
+        "lead": Lead,
+        "account": Account,
+        "contact": Contact,
+        "deal": Deal,
+        "product": Product,
+        "pricebook": Pricebook,
+        "pricebook_entry": PriceBookEntry,
+        "quote": Quote,
+        "quote_line_item": QuoteLineItem,
+        "task": Task,
+    }
+    for model in models.keys():
+        perm = ObjectPermission.query.filter_by(profile_id=profile.id, model=model).first()
+        if not perm:
+            perm = ObjectPermission(profile_id=profile.id, model=model)
+            db.session.add(perm)
+        perm.can_create = bool(request.form.get(f"{model}_create"))
+        perm.can_read = bool(request.form.get(f"{model}_read"))
+        perm.can_update = bool(request.form.get(f"{model}_update"))
+        perm.can_delete = bool(request.form.get(f"{model}_delete"))
+    for model, cls in models.items():
+        for column in cls.__table__.columns.keys():
+            fp = FieldPermission.query.filter_by(profile_id=profile.id, model=model, field=column).first()
+            if not fp:
+                fp = FieldPermission(profile_id=profile.id, model=model, field=column)
+                db.session.add(fp)
+            fp.readable = bool(request.form.get(f"{model}_{column}_read"))
+            fp.editable = bool(request.form.get(f"{model}_{column}_edit"))
+    db.session.commit()
+    return redirect(url_for("edit_profile", profile_id=profile.id))
 
 
 @app.route("/api/update_status", methods=["POST"])

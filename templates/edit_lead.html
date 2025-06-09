@@ -30,6 +30,11 @@
             {% endfor %}
         </select>
     </div>
+    <div class="col-md-6">
+        <label class="form-label">Owner</label>
+        {% from 'macros.html' import lookup %}
+        {{ lookup('owner_id', users, 'username', lead.owner_id) }}
+    </div>
     <div class="col-12">
         <button type="submit" class="btn btn-primary">Update</button>
         <a class="btn btn-secondary" href="{{ url_for('show_lead', lead_id=lead.id) }}">Cancel</a>

@@ -8,6 +8,8 @@
 <p><input type="text" name="phone" value="{{ account.phone }}"></p>
 <p><input type="text" name="address" value="{{ account.address }}"></p>
 <p><textarea name="notes">{{ account.notes }}</textarea></p>
+{% from 'macros.html' import lookup %}
+<p>{{ lookup('owner_id', users, 'username', account.owner_id) }}</p>
 <p><button type="submit">Update</button></p>
 </form>
 {% endblock %}
