@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ title }}</h1>
+<div class="kanban">
+    {% for status, records in columns.items() %}
+    <div class="kanban-column">
+        <h3>{{ status }}</h3>
+        <ul>
+        {% for r in records %}
+            <li>{{ r.name if r.name else r.description }}</li>
+        {% else %}
+            <li>None</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

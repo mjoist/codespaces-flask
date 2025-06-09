@@ -1,10 +1,42 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import (
+    LoginManager,
+    login_user,
+    login_required,
+    logout_user,
+    current_user,
+    UserMixin,
+)
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///crm.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = "dev-secret"
 db = SQLAlchemy(app)
+
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean, default=False)
+
+
+class StatusOption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    model = db.Column(db.String(50))
+    value = db.Column(db.String(50))
 
 
 class Lead(db.Model):
@@ -12,6 +44,8 @@ class Lead(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120))
     phone = db.Column(db.String(50))
+    company = db.Column(db.String(120))
+    notes = db.Column(db.Text)
     status = db.Column(db.String(50))
 
 
@@ -21,6 +55,7 @@ class Account(db.Model):
     industry = db.Column(db.String(120))
     email = db.Column(db.String(120))
     phone = db.Column(db.String(50))
+    address = db.Column(db.String(255))
     notes = db.Column(db.Text)
 
 
@@ -29,6 +64,7 @@ class Contact(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120))
     phone = db.Column(db.String(50))
+    title = db.Column(db.String(120))
     account_id = db.Column(db.Integer, db.ForeignKey("account.id"))
     account = db.relationship("Account", backref=db.backref("contacts", lazy=True))
 
@@ -38,6 +74,7 @@ class Deal(db.Model):
     name = db.Column(db.String(120), nullable=False)
     amount = db.Column(db.Float)
     stage = db.Column(db.String(50))
+    close_date = db.Column(db.String(50))
     account_id = db.Column(db.Integer, db.ForeignKey("account.id"))
     account = db.relationship("Account", backref=db.backref("deals", lazy=True))
 
@@ -46,11 +83,13 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     price = db.Column(db.Float)
+    description = db.Column(db.Text)
 
 
 class Pricebook(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text)
 
 
 class PriceBookEntry(db.Model):
@@ -66,6 +105,7 @@ class Quote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     deal_id = db.Column(db.Integer, db.ForeignKey("deal.id"))
     total = db.Column(db.Float)
+    expiration_date = db.Column(db.String(50))
     deal = db.relationship("Deal")
 
 
@@ -83,8 +123,15 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(255))
     due_date = db.Column(db.String(50))
+    status = db.Column(db.String(50))
     model = db.Column(db.String(50))
     record_id = db.Column(db.Integer)
+
+
+@app.before_request
+def require_login():
+    if request.endpoint not in ("login", "static") and not current_user.is_authenticated:
+        return redirect(url_for("login"))
 
 @app.route("/")
 def dashboard():
@@ -97,7 +144,10 @@ def dashboard():
         "pricebooks": Pricebook.query.count(),
         "quotes": Quote.query.count(),
     }
-    return render_template("dashboard.html", counts=counts, title="Dashboard")
+    tasks = Task.query.all()
+    return render_template(
+        "dashboard.html", counts=counts, tasks=tasks, title="Dashboard"
+    )
 
 
 
@@ -108,9 +158,19 @@ def list_leads():
     return render_template("leads.html", leads=leads, title="Leads")
 
 
+@app.route("/leads/kanban")
+def leads_kanban():
+    statuses = [s.value for s in StatusOption.query.filter_by(model="lead").all()]
+    columns = {s: Lead.query.filter_by(status=s).all() for s in statuses}
+    return render_template(
+        "kanban.html", columns=columns, title="Leads Kanban"
+    )
+
+
 @app.route("/leads/new")
 def new_lead():
-    return render_template("new_lead.html", title="New Lead")
+    statuses = StatusOption.query.filter_by(model="lead").all()
+    return render_template("new_lead.html", statuses=statuses, title="New Lead")
 
 
 @app.route("/leads/create", methods=["POST"])
@@ -119,6 +179,8 @@ def create_lead():
         name=request.form["name"],
         email=request.form.get("email"),
         phone=request.form.get("phone"),
+        company=request.form.get("company"),
+        notes=request.form.get("notes"),
         status=request.form.get("status"),
     )
     db.session.add(lead)
@@ -138,7 +200,10 @@ def show_lead(lead_id):
 @app.route("/leads/<int:lead_id>/edit")
 def edit_lead(lead_id):
     lead = Lead.query.get_or_404(lead_id)
-    return render_template("edit_lead.html", lead=lead, title="Edit Lead")
+    statuses = StatusOption.query.filter_by(model="lead").all()
+    return render_template(
+        "edit_lead.html", lead=lead, statuses=statuses, title="Edit Lead"
+    )
 
 
 @app.route("/leads/<int:lead_id>/update", methods=["POST"])
@@ -147,6 +212,8 @@ def update_lead(lead_id):
     lead.name = request.form["name"]
     lead.email = request.form.get("email")
     lead.phone = request.form.get("phone")
+    lead.company = request.form.get("company")
+    lead.notes = request.form.get("notes")
     lead.status = request.form.get("status")
     db.session.commit()
     return redirect(url_for("show_lead", lead_id=lead.id))
@@ -194,6 +261,7 @@ def create_account():
         industry=request.form.get("industry"),
         email=request.form.get("email"),
         phone=request.form.get("phone"),
+        address=request.form.get("address"),
         notes=request.form.get("notes"),
     )
     db.session.add(account)
@@ -225,6 +293,7 @@ def update_account(account_id):
     account.industry = request.form.get("industry")
     account.email = request.form.get("email")
     account.phone = request.form.get("phone")
+    account.address = request.form.get("address")
     account.notes = request.form.get("notes")
     db.session.commit()
     return redirect(url_for("show_account", account_id=account.id))
@@ -248,6 +317,7 @@ def create_contact():
         name=request.form["name"],
         email=request.form.get("email"),
         phone=request.form.get("phone"),
+        title=request.form.get("title"),
         account_id=request.form.get("account_id") or None,
     )
     db.session.add(contact)
@@ -279,6 +349,7 @@ def update_contact(contact_id):
     contact.name = request.form["name"]
     contact.email = request.form.get("email")
     contact.phone = request.form.get("phone")
+    contact.title = request.form.get("title")
     contact.account_id = request.form.get("account_id") or None
     db.session.commit()
     return redirect(url_for("show_contact", contact_id=contact.id))
@@ -290,10 +361,22 @@ def list_deals():
     return render_template("deals.html", deals=deals, title="Deals")
 
 
+@app.route("/deals/kanban")
+def deals_kanban():
+    statuses = [s.value for s in StatusOption.query.filter_by(model="deal").all()]
+    columns = {s: Deal.query.filter_by(stage=s).all() for s in statuses}
+    return render_template(
+        "kanban.html", columns=columns, title="Deals Kanban"
+    )
+
+
 @app.route("/deals/new")
 def new_deal():
     accounts = Account.query.all()
-    return render_template("new_deal.html", accounts=accounts, title="New Deal")
+    stages = StatusOption.query.filter_by(model="deal").all()
+    return render_template(
+        "new_deal.html", accounts=accounts, stages=stages, title="New Deal"
+    )
 
 
 @app.route("/deals/create", methods=["POST"])
@@ -302,6 +385,7 @@ def create_deal():
         name=request.form["name"],
         amount=request.form.get("amount"),
         stage=request.form.get("stage"),
+        close_date=request.form.get("close_date"),
         account_id=request.form.get("account_id") or None,
     )
     db.session.add(deal)
@@ -322,7 +406,10 @@ def show_deal(deal_id):
 def edit_deal(deal_id):
     deal = Deal.query.get_or_404(deal_id)
     accounts = Account.query.all()
-    return render_template("edit_deal.html", deal=deal, accounts=accounts, title="Edit Deal")
+    stages = StatusOption.query.filter_by(model="deal").all()
+    return render_template(
+        "edit_deal.html", deal=deal, accounts=accounts, stages=stages, title="Edit Deal"
+    )
 
 
 @app.route("/deals/<int:deal_id>/update", methods=["POST"])
@@ -331,6 +418,7 @@ def update_deal(deal_id):
     deal.name = request.form["name"]
     deal.amount = request.form.get("amount")
     deal.stage = request.form.get("stage")
+    deal.close_date = request.form.get("close_date")
     deal.account_id = request.form.get("account_id") or None
     db.session.commit()
     return redirect(url_for("show_deal", deal_id=deal.id))
@@ -352,6 +440,7 @@ def create_product():
     product = Product(
         name=request.form["name"],
         price=request.form.get("price"),
+        description=request.form.get("description"),
     )
     db.session.add(product)
     db.session.commit()
@@ -380,6 +469,7 @@ def update_product(product_id):
     product = Product.query.get_or_404(product_id)
     product.name = request.form["name"]
     product.price = request.form.get("price")
+    product.description = request.form.get("description")
     db.session.commit()
     return redirect(url_for("show_product", product_id=product.id))
 
@@ -397,7 +487,10 @@ def new_pricebook():
 
 @app.route("/pricebooks/create", methods=["POST"])
 def create_pricebook():
-    pricebook = Pricebook(name=request.form["name"])
+    pricebook = Pricebook(
+        name=request.form["name"],
+        description=request.form.get("description"),
+    )
     db.session.add(pricebook)
     db.session.commit()
     return redirect(url_for("list_pricebooks"))
@@ -427,6 +520,7 @@ def edit_pricebook(pricebook_id):
 def update_pricebook(pricebook_id):
     pricebook = Pricebook.query.get_or_404(pricebook_id)
     pricebook.name = request.form["name"]
+    pricebook.description = request.form.get("description")
     db.session.commit()
     return redirect(url_for("show_pricebook", pricebook_id=pricebook.id))
 
@@ -516,6 +610,7 @@ def create_quote():
     quote = Quote(
         deal_id=request.form.get("deal_id"),
         total=request.form.get("total"),
+        expiration_date=request.form.get("expiration_date"),
     )
     db.session.add(quote)
     db.session.commit()
@@ -543,6 +638,7 @@ def update_quote(quote_id):
     quote = Quote.query.get_or_404(quote_id)
     quote.deal_id = request.form.get("deal_id")
     quote.total = request.form.get("total")
+    quote.expiration_date = request.form.get("expiration_date")
     db.session.commit()
     return redirect(url_for("show_quote", quote_id=quote.id))
 
@@ -621,10 +717,24 @@ def list_tasks():
     return render_template("tasks.html", tasks=tasks, title="Tasks")
 
 
+@app.route("/tasks/kanban")
+def tasks_kanban():
+    statuses = [s.value for s in StatusOption.query.filter_by(model="task").all()]
+    columns = {s: Task.query.filter_by(status=s).all() for s in statuses}
+    return render_template(
+        "kanban.html", columns=columns, title="Tasks Kanban"
+    )
+
+
 @app.route("/tasks/new/<model>/<int:record_id>")
 def new_task(model, record_id):
+    statuses = StatusOption.query.filter_by(model="task").all()
     return render_template(
-        "new_task.html", model=model, record_id=record_id, title="New Task"
+        "new_task.html",
+        model=model,
+        record_id=record_id,
+        statuses=statuses,
+        title="New Task",
     )
 
 
@@ -633,6 +743,7 @@ def create_task():
     task = Task(
         description=request.form["description"],
         due_date=request.form.get("due_date"),
+        status=request.form.get("status"),
         model=request.form.get("model"),
         record_id=request.form.get("record_id"),
     )
@@ -641,5 +752,74 @@ def create_task():
     return redirect(url_for("list_tasks"))
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user = User.query.filter_by(username=request.form["username"]).first()
+        if user and check_password_hash(user.password_hash, request.form["password"]):
+            login_user(user)
+            return redirect(url_for("dashboard"))
+        flash("Invalid credentials")
+    return render_template("login.html", title="Login")
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
+
+@app.route("/admin")
+@login_required
+def admin():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    users = User.query.all()
+    return render_template("admin.html", users=users, title="Admin")
+
+
+@app.route("/admin/users/create", methods=["POST"])
+@login_required
+def create_user():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    username = request.form["username"]
+    password = generate_password_hash(request.form["password"])
+    user = User(username=username, password_hash=password)
+    db.session.add(user)
+    db.session.commit()
+    return redirect(url_for("admin"))
+
+
+@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+def delete_user(user_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for("admin"))
+
+
 with app.app_context():
     db.create_all()
+    if not User.query.filter_by(username="admin").first():
+        admin_user = User(
+            username="admin",
+            password_hash=generate_password_hash("admin"),
+            is_admin=True,
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+
+    if not StatusOption.query.first():
+        defaults = {
+            "lead": ["New", "Contacted", "Qualified"],
+            "task": ["Open", "In Progress", "Closed"],
+            "deal": ["Prospecting", "Negotiation", "Won", "Lost"],
+        }
+        for model, values in defaults.items():
+            for v in values:
+                db.session.add(StatusOption(model=model, value=v))
+        db.session.commit()

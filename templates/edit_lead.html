@@ -1,11 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Edit Lead</h1>
-<form action="{{ url_for('update_lead', lead_id=lead.id) }}" method="post">
+<form action="{{ url_for('update_lead', lead_id=lead.id) }}" method="post" class="two-column">
 <p><input type="text" name="name" value="{{ lead.name }}" required></p>
 <p><input type="email" name="email" value="{{ lead.email }}"></p>
 <p><input type="text" name="phone" value="{{ lead.phone }}"></p>
-<p><input type="text" name="status" value="{{ lead.status }}"></p>
+<p><input type="text" name="company" value="{{ lead.company }}"></p>
+<p><textarea name="notes">{{ lead.notes }}</textarea></p>
+<p>
+    <select name="status">
+        {% for s in statuses %}
+            <option value="{{ s.value }}" {% if s.value == lead.status %}selected{% endif %}>{{ s.value }}</option>
+        {% endfor %}
+    </select>
+</p>
 <p><button type="submit">Update</button></p>
 </form>
 {% endblock %}

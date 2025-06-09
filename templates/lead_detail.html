@@ -3,6 +3,8 @@
 <h1>{{ lead.name }}</h1>
 <p>Email: {{ lead.email }}</p>
 <p>Phone: {{ lead.phone }}</p>
+<p>Company: {{ lead.company }}</p>
+<p>Notes: {{ lead.notes }}</p>
 <p>Status: {{ lead.status }}</p>
 <p><a class="App-link" href="{{ url_for('edit_lead', lead_id=lead.id) }}">Edit</a></p>
 <form action="{{ url_for('convert_lead', lead_id=lead.id) }}" method="post" style="display:inline;">

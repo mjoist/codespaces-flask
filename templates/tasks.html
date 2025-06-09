@@ -3,16 +3,17 @@
 <h1>Tasks</h1>
 <p><a class="App-link" href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
 <table>
-<tr><th>Description</th><th>Due</th><th>Model</th><th>Record</th></tr>
+<tr><th>Description</th><th>Due</th><th>Status</th><th>Model</th><th>Record</th></tr>
 {% for task in tasks %}
 <tr>
 <td>{{ task.description }}</td>
 <td>{{ task.due_date or '' }}</td>
+<td>{{ task.status }}</td>
 <td>{{ task.model }}</td>
 <td>{{ task.record_id }}</td>
 </tr>
 {% else %}
-<tr><td colspan="4">No tasks found.</td></tr>
+<tr><td colspan="5">No tasks found.</td></tr>
 {% endfor %}
 </table>
 {% endblock %}

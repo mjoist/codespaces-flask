@@ -55,6 +55,9 @@ code {
 .navbar li {
     margin-right: 1rem;
 }
+.navbar li.right {
+    margin-left: auto;
+}
 .navbar a {
     color: white;
     text-decoration: none;
@@ -77,4 +80,26 @@ td {
 
 th {
     background: #f3f2f2;
+}
+
+.two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 800px;
+    margin: auto;
+}
+
+.kanban {
+    display: flex;
+    gap: 1rem;
+}
+.kanban-column {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #d8dde6;
+    padding: 0.5rem;
+}
+.kanban-column h3 {
+    text-align: center;
 }

@@ -3,7 +3,7 @@
     <div class="App">
         <header class="App-header">
             <h1>New Quote</h1>
-            <form action="{{ url_for('create_quote') }}" method="post">
+            <form action="{{ url_for('create_quote') }}" method="post" class="two-column">
                 <p>
                     <select name="deal_id">
                         {% for deal in deals %}
@@ -12,6 +12,7 @@
                     </select>
                 </p>
                 <p><input type="number" step="0.01" name="total" placeholder="Total"></p>
+                <p><input type="date" name="expiration_date" placeholder="Expiration"></p>
                 <p><button type="submit">Create</button></p>
             </form>
             <p><a class="App-link" href="{{ url_for('list_quotes') }}">Back</a></p>
