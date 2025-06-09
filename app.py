@@ -802,6 +802,49 @@ def delete_user(user_id):
     return redirect(url_for("admin"))
 
 
+@app.route("/admin/statuses")
+@login_required
+def manage_statuses():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    statuses = StatusOption.query.all()
+    return render_template("statuses.html", statuses=statuses, title="Manage Statuses")
+
+
+@app.route("/admin/statuses/create", methods=["POST"])
+@login_required
+def create_status():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    db.session.add(
+        StatusOption(model=request.form["model"], value=request.form["value"])
+    )
+    db.session.commit()
+    return redirect(url_for("manage_statuses"))
+
+
+@app.route("/admin/statuses/<int:status_id>/update", methods=["POST"])
+@login_required
+def update_status(status_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    status = StatusOption.query.get_or_404(status_id)
+    status.value = request.form["value"]
+    db.session.commit()
+    return redirect(url_for("manage_statuses"))
+
+
+@app.route("/admin/statuses/<int:status_id>/delete", methods=["POST"])
+@login_required
+def delete_status(status_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    status = StatusOption.query.get_or_404(status_id)
+    db.session.delete(status)
+    db.session.commit()
+    return redirect(url_for("manage_statuses"))
+
+
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(username="admin").first():

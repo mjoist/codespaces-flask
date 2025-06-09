@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Tasks</h1>
-<p><a class="App-link" href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+<p>
+    <a class="App-link" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    |
+    <a class="App-link" href="{{ url_for('tasks_kanban') }}">Kanban View</a>
+</p>
 <table>
 <tr><th>Description</th><th>Due</th><th>Status</th><th>Model</th><th>Record</th></tr>
 {% for task in tasks %}
