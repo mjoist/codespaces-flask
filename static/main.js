@@ -64,4 +64,65 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    function initMentions(textarea) {
+        const dropdown = document.createElement('div');
+        dropdown.className = 'mention-dropdown list-group position-absolute';
+        dropdown.style.display = 'none';
+        textarea.parentNode.style.position = 'relative';
+        textarea.parentNode.appendChild(dropdown);
+
+        let start = null;
+
+        textarea.addEventListener('input', () => {
+            const pos = textarea.selectionStart;
+            const value = textarea.value;
+
+            if (start === null && value[pos - 1] === '@') {
+                start = pos - 1;
+            }
+
+            if (start !== null) {
+                if (pos < start || value[start] !== '@') {
+                    start = null;
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                const query = value.slice(start + 1, pos);
+                if (/\s/.test(query)) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                fetch('/api/users?q=' + encodeURIComponent(query))
+                    .then(r => r.json())
+                    .then(data => {
+                        dropdown.innerHTML = '';
+                        data.users.forEach(user => {
+                            const item = document.createElement('button');
+                            item.type = 'button';
+                            item.className = 'list-group-item list-group-item-action';
+                            item.textContent = user;
+                            item.addEventListener('mousedown', e => {
+                                e.preventDefault();
+                                const before = value.slice(0, start);
+                                const after = value.slice(pos);
+                                textarea.value = `${before}@${user} ${after}`;
+                                const newPos = before.length + user.length + 2;
+                                textarea.setSelectionRange(newPos, newPos);
+                                dropdown.style.display = 'none';
+                                start = null;
+                            });
+                            dropdown.appendChild(item);
+                        });
+                        dropdown.style.display = data.users.length ? 'block' : 'none';
+                    });
+            }
+        });
+
+        textarea.addEventListener('blur', () => {
+            setTimeout(() => dropdown.style.display = 'none', 200);
+        });
+    }
+
+    document.querySelectorAll('textarea.mention-enabled').forEach(initMentions);
 });

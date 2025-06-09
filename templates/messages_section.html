@@ -12,7 +12,7 @@
 <form action="{{ url_for('create_message') }}" method="post" class="mb-3">
     <input type="hidden" name="model" value="{{ model }}">
     <input type="hidden" name="record_id" value="{{ record_id }}">
-    <textarea id="message-content" name="content" class="form-control" rows="3"></textarea>
+    <textarea id="message-content" name="content" class="form-control mention-enabled" rows="3"></textarea>
     <button type="submit" class="btn btn-primary mt-2">Send</button>
 </form>
 <script src="https://cdn.jsdelivr.net/npm/@ckeditor/ckeditor5-build-classic@35.4.0/build/ckeditor.js"></script>
