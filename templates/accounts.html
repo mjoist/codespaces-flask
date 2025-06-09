@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="App">
+        <header class="App-header">
+            <h1>Accounts</h1>
+            <p><a class="App-link" href="{{ url_for('new_account') }}">Add Account</a></p>
+            <ul>
+                {% for account in accounts %}
+                    <li>{{ account.name }} - {{ account.industry or '' }}</li>
+                {% else %}
+                    <li>No accounts found.</li>
+                {% endfor %}
+            </ul>
+        </header>
+    </div>
+{% endblock %}

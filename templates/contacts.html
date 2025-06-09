@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="App">
+        <header class="App-header">
+            <h1>Contacts</h1>
+            <p><a class="App-link" href="{{ url_for('new_contact') }}">Add Contact</a></p>
+            <ul>
+                {% for contact in contacts %}
+                    <li>{{ contact.name }} - {{ contact.email or '' }}</li>
+                {% else %}
+                    <li>No contacts found.</li>
+                {% endfor %}
+            </ul>
+        </header>
+    </div>
+{% endblock %}

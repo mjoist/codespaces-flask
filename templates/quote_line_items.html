@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="App">
+        <header class="App-header">
+            <h1>Quote Line Items</h1>
+            <p><a class="App-link" href="{{ url_for('new_quote_line_item') }}">Add Line Item</a></p>
+            <ul>
+                {% for item in items %}
+                    <li>{{ item.quote.id }} - {{ item.product.name }} x {{ item.quantity }} @ {{ item.price }}</li>
+                {% else %}
+                    <li>No items found.</li>
+                {% endfor %}
+            </ul>
+        </header>
+    </div>
+{% endblock %}
