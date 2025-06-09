@@ -861,7 +861,7 @@ def tasks_kanban():
     statuses = [s.value for s in StatusOption.query.filter_by(model="task").all()]
     columns = {s: Task.query.filter_by(status=s).all() for s in statuses}
     return render_template(
-        "kanban.html", columns=columns, title="Tasks Kanban"
+        "kanban.html", columns=columns, title="Tasks Kanban", model="task"
     )
 
 
@@ -1038,6 +1038,10 @@ def api_update_status():
         record = Deal.query.get(record_id)
         if record:
             record.stage = status
+    elif model == "task":
+        record = Task.query.get(record_id)
+        if record:
+            record.status = status
     else:
         return {"success": False}, 400
     db.session.commit()
