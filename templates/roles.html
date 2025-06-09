@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ _('manage_roles') }}</h1>
+<p><a class="App-link" href="{{ url_for('admin_overview') }}">{{ _('back_admin') }}</a></p>
+<form action="{{ url_for('create_role') }}" method="post" class="two-column">
+    <p><input type="text" name="name" placeholder="Name" required></p>
+    <p>
+        <select name="parent_id">
+            <option value="">---</option>
+            {% for r in roles %}
+                <option value="{{ r.id }}">{{ r.name }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p><button type="submit">Add</button></p>
+</form>
+<table>
+    <tr><th>Name</th><th>Parent</th><th>Actions</th></tr>
+    {% for role in roles %}
+    <tr>
+        <form action="{{ url_for('update_role', role_id=role.id) }}" method="post">
+            <td><input type="text" name="name" value="{{ role.name }}"></td>
+            <td>
+                <select name="parent_id">
+                    <option value="">---</option>
+                    {% for r in roles %}
+                        <option value="{{ r.id }}" {% if role.parent_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <button type="submit">Update</button>
+        </form>
+        <form action="{{ url_for('delete_role', role_id=role.id) }}" method="post" style="display:inline;">
+                <button type="submit">Delete</button>
+        </form>
+            </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

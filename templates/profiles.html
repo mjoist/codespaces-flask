@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ _('manage_profiles') }}</h1>
+<p><a class="App-link" href="{{ url_for('admin_overview') }}">{{ _('back_admin') }}</a></p>
+<form action="{{ url_for('create_profile') }}" method="post" class="two-column">
+    <p><input type="text" name="name" placeholder="Name" required></p>
+    <p><button type="submit">Add</button></p>
+</form>
+<table>
+    <tr><th>Name</th><th>Actions</th></tr>
+    {% for profile in profiles %}
+    <tr>
+        <form action="{{ url_for('update_profile', profile_id=profile.id) }}" method="post">
+            <td><input type="text" name="name" value="{{ profile.name }}"></td>
+            <td>
+                <button type="submit">Update</button>
+        </form>
+        <form action="{{ url_for('delete_profile', profile_id=profile.id) }}" method="post" style="display:inline;">
+                <button type="submit">Delete</button>
+        </form>
+            </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

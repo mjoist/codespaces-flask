@@ -97,6 +97,83 @@ class User(UserMixin, db.Model):
     timezone = db.Column(db.String(50), default="UTC")
     country = db.Column(db.String(50))
     currency = db.Column(db.String(3), default="USD")
+    profile_id = db.Column(db.Integer, db.ForeignKey("security_profile.id"))
+    role_id = db.Column(db.Integer, db.ForeignKey("role.id"))
+    profile = db.relationship("SecurityProfile")
+    role = db.relationship("Role")
+
+
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey("role.id"))
+    parent = db.relationship("Role", remote_side=[id])
+
+
+class SecurityProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+
+
+class ObjectPermission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("security_profile.id"))
+    model = db.Column(db.String(50))
+    can_create = db.Column(db.Boolean, default=True)
+    can_read = db.Column(db.Boolean, default=True)
+    can_update = db.Column(db.Boolean, default=True)
+    can_delete = db.Column(db.Boolean, default=True)
+    profile = db.relationship("SecurityProfile", backref="object_permissions")
+
+
+class FieldPermission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("security_profile.id"))
+    model = db.Column(db.String(50))
+    field = db.Column(db.String(50))
+    readable = db.Column(db.Boolean, default=True)
+    editable = db.Column(db.Boolean, default=True)
+    profile = db.relationship("SecurityProfile", backref="field_permissions")
+
+
+class LeadShare(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    lead_id = db.Column(db.Integer, db.ForeignKey("lead.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    can_read = db.Column(db.Boolean, default=True)
+    can_write = db.Column(db.Boolean, default=False)
+    lead = db.relationship("Lead")
+    user = db.relationship("User")
+
+
+class AccountShare(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    account_id = db.Column(db.Integer, db.ForeignKey("account.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    can_read = db.Column(db.Boolean, default=True)
+    can_write = db.Column(db.Boolean, default=False)
+    account = db.relationship("Account")
+    user = db.relationship("User")
+
+
+class ContactShare(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    contact_id = db.Column(db.Integer, db.ForeignKey("contact.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    can_read = db.Column(db.Boolean, default=True)
+    can_write = db.Column(db.Boolean, default=False)
+    contact = db.relationship("Contact")
+    user = db.relationship("User")
+
+
+class DealShare(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    deal_id = db.Column(db.Integer, db.ForeignKey("deal.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    can_read = db.Column(db.Boolean, default=True)
+    can_write = db.Column(db.Boolean, default=False)
+    deal = db.relationship("Deal")
+    user = db.relationship("User")
 
 
 class StatusOption(db.Model):
@@ -113,6 +190,8 @@ class Lead(db.Model):
     company = db.Column(db.String(120))
     notes = db.Column(db.Text)
     status = db.Column(db.String(50))
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Account(db.Model):
@@ -123,6 +202,8 @@ class Account(db.Model):
     phone = db.Column(db.String(50))
     address = db.Column(db.String(255))
     notes = db.Column(db.Text)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Contact(db.Model):
@@ -133,6 +214,8 @@ class Contact(db.Model):
     title = db.Column(db.String(120))
     account_id = db.Column(db.Integer, db.ForeignKey("account.id"))
     account = db.relationship("Account", backref=db.backref("contacts", lazy=True))
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Deal(db.Model):
@@ -143,6 +226,8 @@ class Deal(db.Model):
     close_date = db.Column(db.String(50))
     account_id = db.Column(db.Integer, db.ForeignKey("account.id"))
     account = db.relationship("Account", backref=db.backref("deals", lazy=True))
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Product(db.Model):
@@ -150,12 +235,16 @@ class Product(db.Model):
     name = db.Column(db.String(120), nullable=False)
     price = db.Column(db.Float)
     description = db.Column(db.Text)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Pricebook(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class PriceBookEntry(db.Model):
@@ -165,6 +254,8 @@ class PriceBookEntry(db.Model):
     unit_price = db.Column(db.Float)
     product = db.relationship("Product")
     pricebook = db.relationship("Pricebook")
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Quote(db.Model):
@@ -173,6 +264,8 @@ class Quote(db.Model):
     total = db.Column(db.Float)
     expiration_date = db.Column(db.String(50))
     deal = db.relationship("Deal")
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class QuoteLineItem(db.Model):
@@ -183,6 +276,8 @@ class QuoteLineItem(db.Model):
     price = db.Column(db.Float)
     quote = db.relationship("Quote", backref=db.backref("line_items", lazy=True))
     product = db.relationship("Product")
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Task(db.Model):
@@ -192,6 +287,8 @@ class Task(db.Model):
     status = db.Column(db.String(50))
     model = db.Column(db.String(50))
     record_id = db.Column(db.Integer)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User")
 
 
 class Message(db.Model):
@@ -234,6 +331,32 @@ def record_url(model, record_id):
     return url_for("dashboard")
 
 
+def _role_descendants(role):
+    roles = []
+    if not role:
+        return roles
+    stack = [role]
+    while stack:
+        r = stack.pop()
+        roles.append(r.id)
+        stack.extend(Role.query.filter_by(parent_id=r.id).all())
+    return roles
+
+
+def can_view_record(user, owner_id, shares):
+    if user.is_admin:
+        return True
+    if owner_id == user.id:
+        return True
+    if owner_id and user.role:
+        owner = User.query.get(owner_id)
+        if owner and owner.role_id in _role_descendants(user.role):
+            return True
+    if any(s.user_id == user.id and s.can_read for s in shares):
+        return True
+    return False
+
+
 @app.before_request
 def require_login():
     if (
@@ -270,7 +393,11 @@ def list_leads():
     query = Lead.query
     if q:
         query = query.filter(Lead.name.ilike(f"%{q}%"))
-    leads = query.all()
+    leads = [
+        l
+        for l in query.all()
+        if can_view_record(current_user, l.owner_id, LeadShare.query.filter_by(lead_id=l.id).all())
+    ]
     return render_template(
         "leads.html",
         leads=leads,
@@ -303,6 +430,7 @@ def create_lead():
         company=request.form.get("company"),
         notes=request.form.get("notes"),
         status=request.form.get("status"),
+        owner_id=current_user.id,
     )
     db.session.add(lead)
     db.session.commit()
@@ -312,6 +440,8 @@ def create_lead():
 @app.route("/leads/<int:lead_id>")
 def show_lead(lead_id):
     lead = Lead.query.get_or_404(lead_id)
+    if not can_view_record(current_user, lead.owner_id, LeadShare.query.filter_by(lead_id=lead_id).all()):
+        return redirect(url_for("list_leads"))
     tasks = Task.query.filter_by(model="leads", record_id=lead_id).all()
     messages = (
         Message.query.filter_by(model="leads", record_id=lead_id)
@@ -381,7 +511,11 @@ def list_accounts():
     query = Account.query
     if q:
         query = query.filter(Account.name.ilike(f"%{q}%"))
-    accounts = query.all()
+    accounts = [
+        a
+        for a in query.all()
+        if can_view_record(current_user, a.owner_id, AccountShare.query.filter_by(account_id=a.id).all())
+    ]
     return render_template(
         "accounts.html",
         accounts=accounts,
@@ -404,6 +538,7 @@ def create_account():
         phone=request.form.get("phone"),
         address=request.form.get("address"),
         notes=request.form.get("notes"),
+        owner_id=current_user.id,
     )
     db.session.add(account)
     db.session.commit()
@@ -413,6 +548,8 @@ def create_account():
 @app.route("/accounts/<int:account_id>")
 def show_account(account_id):
     account = Account.query.get_or_404(account_id)
+    if not can_view_record(current_user, account.owner_id, AccountShare.query.filter_by(account_id=account_id).all()):
+        return redirect(url_for("list_accounts"))
     tasks = Task.query.filter_by(model="accounts", record_id=account_id).all()
     messages = (
         Message.query.filter_by(model="accounts", record_id=account_id)
@@ -455,7 +592,11 @@ def list_contacts():
     query = Contact.query
     if q:
         query = query.filter(Contact.name.ilike(f"%{q}%"))
-    contacts = query.all()
+    contacts = [
+        c
+        for c in query.all()
+        if can_view_record(current_user, c.owner_id, ContactShare.query.filter_by(contact_id=c.id).all())
+    ]
     return render_template(
         "contacts.html",
         contacts=contacts,
@@ -478,6 +619,7 @@ def create_contact():
         phone=request.form.get("phone"),
         title=request.form.get("title"),
         account_id=request.form.get("account_id") or None,
+        owner_id=current_user.id,
     )
     db.session.add(contact)
     db.session.commit()
@@ -487,6 +629,8 @@ def create_contact():
 @app.route("/contacts/<int:contact_id>")
 def show_contact(contact_id):
     contact = Contact.query.get_or_404(contact_id)
+    if not can_view_record(current_user, contact.owner_id, ContactShare.query.filter_by(contact_id=contact_id).all()):
+        return redirect(url_for("list_contacts"))
     tasks = Task.query.filter_by(model="contacts", record_id=contact_id).all()
     messages = (
         Message.query.filter_by(model="contacts", record_id=contact_id)
@@ -531,7 +675,11 @@ def list_deals():
     query = Deal.query
     if q:
         query = query.filter(Deal.name.ilike(f"%{q}%"))
-    deals = query.all()
+    deals = [
+        d
+        for d in query.all()
+        if can_view_record(current_user, d.owner_id, DealShare.query.filter_by(deal_id=d.id).all())
+    ]
     return render_template(
         "deals.html",
         deals=deals,
@@ -566,6 +714,7 @@ def create_deal():
         stage=request.form.get("stage"),
         close_date=request.form.get("close_date"),
         account_id=request.form.get("account_id") or None,
+        owner_id=current_user.id,
     )
     db.session.add(deal)
     db.session.commit()
@@ -575,6 +724,8 @@ def create_deal():
 @app.route("/deals/<int:deal_id>")
 def show_deal(deal_id):
     deal = Deal.query.get_or_404(deal_id)
+    if not can_view_record(current_user, deal.owner_id, DealShare.query.filter_by(deal_id=deal_id).all()):
+        return redirect(url_for("list_deals"))
     tasks = Task.query.filter_by(model="deals", record_id=deal_id).all()
     messages = (
         Message.query.filter_by(model="deals", record_id=deal_id)
@@ -620,7 +771,11 @@ def list_products():
     query = Product.query
     if q:
         query = query.filter(Product.name.ilike(f"%{q}%"))
-    products = query.all()
+    products = [
+        p
+        for p in query.all()
+        if can_view_record(current_user, p.owner_id, [])
+    ]
     return render_template(
         "products.html",
         products=products,
@@ -640,6 +795,7 @@ def create_product():
         name=request.form["name"],
         price=request.form.get("price"),
         description=request.form.get("description"),
+        owner_id=current_user.id,
     )
     db.session.add(product)
     db.session.commit()
@@ -649,6 +805,8 @@ def create_product():
 @app.route("/products/<int:product_id>")
 def show_product(product_id):
     product = Product.query.get_or_404(product_id)
+    if not can_view_record(current_user, product.owner_id, []):
+        return redirect(url_for("list_products"))
     tasks = Task.query.filter_by(model="products", record_id=product_id).all()
     messages = (
         Message.query.filter_by(model="products", record_id=product_id)
@@ -688,7 +846,11 @@ def list_pricebooks():
     query = Pricebook.query
     if q:
         query = query.filter(Pricebook.name.ilike(f"%{q}%"))
-    pricebooks = query.all()
+    pricebooks = [
+        pb
+        for pb in query.all()
+        if can_view_record(current_user, pb.owner_id, [])
+    ]
     return render_template(
         "pricebooks.html",
         pricebooks=pricebooks,
@@ -707,6 +869,7 @@ def create_pricebook():
     pricebook = Pricebook(
         name=request.form["name"],
         description=request.form.get("description"),
+        owner_id=current_user.id,
     )
     db.session.add(pricebook)
     db.session.commit()
@@ -716,6 +879,8 @@ def create_pricebook():
 @app.route("/pricebooks/<int:pricebook_id>")
 def show_pricebook(pricebook_id):
     pricebook = Pricebook.query.get_or_404(pricebook_id)
+    if not can_view_record(current_user, pricebook.owner_id, []):
+        return redirect(url_for("list_pricebooks"))
     tasks = Task.query.filter_by(model="pricebooks", record_id=pricebook_id).all()
     messages = (
         Message.query.filter_by(model="pricebooks", record_id=pricebook_id)
@@ -787,6 +952,7 @@ def create_pricebook_entry():
         product_id=request.form.get("product_id"),
         pricebook_id=request.form.get("pricebook_id"),
         unit_price=request.form.get("unit_price"),
+        owner_id=current_user.id,
     )
     db.session.add(entry)
     db.session.commit()
@@ -796,6 +962,8 @@ def create_pricebook_entry():
 @app.route("/pricebook_entries/<int:entry_id>")
 def show_pricebook_entry(entry_id):
     entry = PriceBookEntry.query.get_or_404(entry_id)
+    if not can_view_record(current_user, entry.owner_id, []):
+        return redirect(url_for("list_pricebook_entries"))
     tasks = Task.query.filter_by(model="pricebook_entries", record_id=entry_id).all()
     messages = (
         Message.query.filter_by(model="pricebook_entries", record_id=entry_id)
@@ -843,7 +1011,11 @@ def list_quotes():
     query = Quote.query
     if q:
         query = query.filter(Quote.id == q)
-    quotes = query.all()
+    quotes = [
+        q
+        for q in query.all()
+        if can_view_record(current_user, q.owner_id, [])
+    ]
     return render_template(
         "quotes.html",
         quotes=quotes,
@@ -864,6 +1036,7 @@ def create_quote():
         deal_id=request.form.get("deal_id"),
         total=request.form.get("total"),
         expiration_date=request.form.get("expiration_date"),
+        owner_id=current_user.id,
     )
     db.session.add(quote)
     db.session.commit()
@@ -873,6 +1046,8 @@ def create_quote():
 @app.route("/quotes/<int:quote_id>")
 def show_quote(quote_id):
     quote = Quote.query.get_or_404(quote_id)
+    if not can_view_record(current_user, quote.owner_id, []):
+        return redirect(url_for("list_quotes"))
     tasks = Task.query.filter_by(model="quotes", record_id=quote_id).all()
     messages = (
         Message.query.filter_by(model="quotes", record_id=quote_id)
@@ -915,7 +1090,11 @@ def list_quote_line_items():
     query = QuoteLineItem.query
     if q:
         query = query.filter(QuoteLineItem.id == q)
-    items = query.all()
+    items = [
+        i
+        for i in query.all()
+        if can_view_record(current_user, i.owner_id, [])
+    ]
     return render_template(
         "quote_line_items.html",
         items=items,
@@ -943,6 +1122,7 @@ def create_quote_line_item():
         product_id=request.form.get("product_id"),
         quantity=request.form.get("quantity"),
         price=request.form.get("price"),
+        owner_id=current_user.id,
     )
     db.session.add(item)
     db.session.commit()
@@ -952,6 +1132,8 @@ def create_quote_line_item():
 @app.route("/quote_line_items/<int:item_id>")
 def show_quote_line_item(item_id):
     item = QuoteLineItem.query.get_or_404(item_id)
+    if not can_view_record(current_user, item.owner_id, []):
+        return redirect(url_for("list_quote_line_items"))
     tasks = Task.query.filter_by(model="quote_line_items", record_id=item_id).all()
     messages = (
         Message.query.filter_by(model="quote_line_items", record_id=item_id)
@@ -1000,7 +1182,11 @@ def list_tasks():
     query = Task.query
     if q:
         query = query.filter(Task.description.ilike(f"%{q}%"))
-    tasks = query.all()
+    tasks = [
+        t
+        for t in query.all()
+        if can_view_record(current_user, t.owner_id, [])
+    ]
     return render_template(
         "tasks.html",
         tasks=tasks,
@@ -1038,6 +1224,7 @@ def create_task():
         status=request.form.get("status"),
         model=request.form.get("model"),
         record_id=request.form.get("record_id"),
+        owner_id=current_user.id,
     )
     db.session.add(task)
     db.session.commit()
@@ -1202,10 +1389,14 @@ def admin_users():
     if not current_user.is_admin:
         return redirect(url_for("dashboard"))
     users = User.query.all()
+    roles = Role.query.all()
+    profiles = SecurityProfile.query.all()
 
     return render_template(
         "admin.html",
         users=users,
+        roles=roles,
+        profiles=profiles,
         title=get_translations().get("user_management", "User Management"),
     )
 
@@ -1223,8 +1414,21 @@ def create_user():
         language="en",
         timezone="UTC",
         currency="USD",
+        role_id=request.form.get("role_id") or None,
+        profile_id=request.form.get("profile_id") or None,
     )
     db.session.add(user)
+    db.session.commit()
+    return redirect(url_for("admin_users"))
+
+@app.route("/admin/users/<int:user_id>/update", methods=["POST"])
+@login_required
+def update_user(user_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    user = User.query.get_or_404(user_id)
+    user.role_id = request.form.get("role_id") or None
+    user.profile_id = request.form.get("profile_id") or None
     db.session.commit()
     return redirect(url_for("admin_users"))
 
@@ -1285,6 +1489,92 @@ def delete_status(status_id):
     db.session.delete(status)
     db.session.commit()
     return redirect(url_for("manage_statuses"))
+
+
+@app.route("/admin/roles")
+@login_required
+def manage_roles():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    roles = Role.query.all()
+    return render_template(
+        "roles.html",
+        roles=roles,
+        title=get_translations().get("manage_roles", "Manage Roles"),
+    )
+
+@app.route("/admin/roles/create", methods=["POST"])
+@login_required
+def create_role():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    role = Role(name=request.form["name"], parent_id=request.form.get("parent_id") or None)
+    db.session.add(role)
+    db.session.commit()
+    return redirect(url_for("manage_roles"))
+
+@app.route("/admin/roles/<int:role_id>/update", methods=["POST"])
+@login_required
+def update_role(role_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    role = Role.query.get_or_404(role_id)
+    role.name = request.form["name"]
+    role.parent_id = request.form.get("parent_id") or None
+    db.session.commit()
+    return redirect(url_for("manage_roles"))
+
+@app.route("/admin/roles/<int:role_id>/delete", methods=["POST"])
+@login_required
+def delete_role(role_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    role = Role.query.get_or_404(role_id)
+    db.session.delete(role)
+    db.session.commit()
+    return redirect(url_for("manage_roles"))
+
+@app.route("/admin/profiles")
+@login_required
+def manage_profiles():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    profiles = SecurityProfile.query.all()
+    return render_template(
+        "profiles.html",
+        profiles=profiles,
+        title=get_translations().get("manage_profiles", "Manage Profiles"),
+    )
+
+@app.route("/admin/profiles/create", methods=["POST"])
+@login_required
+def create_profile():
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    profile = SecurityProfile(name=request.form["name"])
+    db.session.add(profile)
+    db.session.commit()
+    return redirect(url_for("manage_profiles"))
+
+@app.route("/admin/profiles/<int:profile_id>/update", methods=["POST"])
+@login_required
+def update_profile(profile_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    profile = SecurityProfile.query.get_or_404(profile_id)
+    profile.name = request.form["name"]
+    db.session.commit()
+    return redirect(url_for("manage_profiles"))
+
+@app.route("/admin/profiles/<int:profile_id>/delete", methods=["POST"])
+@login_required
+def delete_profile(profile_id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    profile = SecurityProfile.query.get_or_404(profile_id)
+    db.session.delete(profile)
+    db.session.commit()
+    return redirect(url_for("manage_profiles"))
 
 
 @app.route("/api/update_status", methods=["POST"])
@@ -1352,6 +1642,29 @@ with app.app_context():
     if 'currency' not in cols:
         db.session.execute(db.text("ALTER TABLE user ADD COLUMN currency VARCHAR(3) DEFAULT 'USD'"))
         added = True
+    if 'profile_id' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN profile_id INTEGER"))
+        added = True
+    if 'role_id' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN role_id INTEGER"))
+        added = True
+    tables = [
+        'lead',
+        'account',
+        'contact',
+        'deal',
+        'product',
+        'pricebook',
+        'price_book_entry',
+        'quote',
+        'quote_line_item',
+        'task',
+    ]
+    for table in tables:
+        cols = {c['name'] for c in inspector.get_columns(table)}
+        if 'owner_id' not in cols:
+            db.session.execute(db.text(f"ALTER TABLE {table} ADD COLUMN owner_id INTEGER"))
+            added = True
     if added:
         db.session.commit()
     if not User.query.filter_by(username="admin").first():
