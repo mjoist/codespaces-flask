@@ -110,3 +110,16 @@ input, select, textarea { color: #000; }
 .offcanvas-end {
     width: 400px;
 }
+
+.mention-dropdown {
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.mention-dropdown .list-group-item {
+    cursor: pointer;
+}
