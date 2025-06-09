@@ -13,11 +13,36 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Drag & drop for kanban cards
+    // Drag & drop for kanban cards and detail popup
+    let dragging = false;
     document.querySelectorAll('.kanban-card').forEach(card => {
         card.addEventListener('dragstart', ev => {
+            dragging = true;
             ev.dataTransfer.setData('text/plain', card.dataset.id);
             ev.dataTransfer.setData('text/model', card.dataset.model);
+        });
+        card.addEventListener('dragend', () => { dragging = false; });
+        card.addEventListener('click', () => {
+            if (dragging) { dragging = false; return; }
+            const id = card.dataset.id;
+            const model = card.dataset.model;
+            fetch(`/api/record/${model}/${id}`).then(r => r.json()).then(data => {
+                const body = document.getElementById('recordOffcanvasBody');
+                const label = document.getElementById('recordOffcanvasLabel');
+                if (label) label.textContent = data.name || `${model} ${id}`;
+                if (body) {
+                    body.innerHTML = '';
+                    Object.entries(data).forEach(([k, v]) => {
+                        if (k === '_sa_instance_state' || v === null) return;
+                        const p = document.createElement('p');
+                        p.innerHTML = `<strong>${k}:</strong> ${v}`;
+                        body.appendChild(p);
+                    });
+                }
+                const el = document.getElementById('recordOffcanvas');
+                const offcanvas = bootstrap.Offcanvas.getOrCreateInstance(el);
+                offcanvas.show();
+            });
         });
     });
 

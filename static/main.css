@@ -106,3 +106,7 @@ th {
 
 input, select, textarea { color: #000; }
 .kanban-card { cursor: move; }
+
+.offcanvas-end {
+    width: 400px;
+}
