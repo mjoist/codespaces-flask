@@ -1,17 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{{ title }}</h1>
-<div class="kanban">
+<h1 class="mb-4">{{ title }}</h1>
+<div class="kanban row">
     {% for status, records in columns.items() %}
-    <div class="kanban-column">
+    <div class="kanban-column col" data-status="{{ status }}">
         <h3>{{ status }}</h3>
-        <ul>
+        <div class="cards">
         {% for r in records %}
-            <li>{{ r.name if r.name else r.description }}</li>
+            <div class="card mb-2 kanban-card" draggable="true" data-id="{{ r.id }}" data-model="{{ model }}">
+                <div class="card-body p-2">
+                    <h5 class="card-title">{{ r.name if r.name else r.description }}</h5>
+                    {% if r.email %}<p class="card-text small">{{ r.email }}</p>{% endif %}
+                    {% if r.company %}<p class="card-text small">{{ r.company }}</p>{% endif %}
+                </div>
+            </div>
         {% else %}
-            <li>None</li>
+            <p class="text-muted">None</p>
         {% endfor %}
-        </ul>
+        </div>
     </div>
     {% endfor %}
 </div>

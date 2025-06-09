@@ -163,7 +163,7 @@ def leads_kanban():
     statuses = [s.value for s in StatusOption.query.filter_by(model="lead").all()]
     columns = {s: Lead.query.filter_by(status=s).all() for s in statuses}
     return render_template(
-        "kanban.html", columns=columns, title="Leads Kanban"
+        "kanban.html", columns=columns, title="Leads Kanban", model="lead"
     )
 
 
@@ -366,7 +366,7 @@ def deals_kanban():
     statuses = [s.value for s in StatusOption.query.filter_by(model="deal").all()]
     columns = {s: Deal.query.filter_by(stage=s).all() for s in statuses}
     return render_template(
-        "kanban.html", columns=columns, title="Deals Kanban"
+        "kanban.html", columns=columns, title="Deals Kanban", model="deal"
     )
 
 
@@ -843,6 +843,26 @@ def delete_status(status_id):
     db.session.delete(status)
     db.session.commit()
     return redirect(url_for("manage_statuses"))
+
+
+@app.route("/api/update_status", methods=["POST"])
+def api_update_status():
+    data = request.get_json()
+    model = data.get("model")
+    record_id = data.get("id")
+    status = data.get("status")
+    if model == "lead":
+        record = Lead.query.get(record_id)
+        if record:
+            record.status = status
+    elif model == "deal":
+        record = Deal.query.get(record_id)
+        if record:
+            record.stage = status
+    else:
+        return {"success": False}, 400
+    db.session.commit()
+    return {"success": True}
 
 
 with app.app_context():
