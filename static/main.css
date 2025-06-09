@@ -62,12 +62,6 @@ code {
     color: white;
     text-decoration: none;
 }
-.navbar .btn {
-    color: white;
-}
-.navbar .btn:hover {
-    color: #fff;
-}
 .content {
     padding: 1rem;
 }
