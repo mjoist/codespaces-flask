@@ -1337,6 +1337,23 @@ def api_get_record(model, record_id):
 
 with app.app_context():
     db.create_all()
+    inspector = db.inspect(db.engine)
+    cols = {c['name'] for c in inspector.get_columns('user')}
+    added = False
+    if 'language' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN language VARCHAR(10) DEFAULT 'en'"))
+        added = True
+    if 'timezone' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN timezone VARCHAR(50) DEFAULT 'UTC'"))
+        added = True
+    if 'country' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN country VARCHAR(50)"))
+        added = True
+    if 'currency' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN currency VARCHAR(3) DEFAULT 'USD'"))
+        added = True
+    if added:
+        db.session.commit()
     if not User.query.filter_by(username="admin").first():
         admin_user = User(
             username="admin",
