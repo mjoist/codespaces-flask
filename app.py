@@ -7,17 +7,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
-class Customer(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120))
-    phone = db.Column(db.String(50))
-    notes = db.Column(db.Text)
-
-    def __repr__(self) -> str:
-        return f"<Customer {self.name}>"
-
-
 class Lead(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
@@ -30,6 +19,9 @@ class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     industry = db.Column(db.String(120))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(50))
+    notes = db.Column(db.Text)
 
 
 class Contact(db.Model):
@@ -97,7 +89,6 @@ class Task(db.Model):
 @app.route("/")
 def dashboard():
     counts = {
-        "customers": Customer.query.count(),
         "leads": Lead.query.count(),
         "accounts": Account.query.count(),
         "contacts": Contact.query.count(),
@@ -109,58 +100,6 @@ def dashboard():
     return render_template("dashboard.html", counts=counts, title="Dashboard")
 
 
-@app.route("/customers")
-def list_customers():
-    customers = Customer.query.all()
-    return render_template("customers.html", customers=customers, title="Customers")
-
-
-@app.route("/customers/new")
-def new_customer():
-    return render_template("new_customer.html", title="New Customer")
-
-
-@app.route("/customers/create", methods=["POST"])
-def create_customer():
-    name = request.form["name"]
-    email = request.form.get("email")
-    phone = request.form.get("phone")
-    notes = request.form.get("notes")
-    customer = Customer(name=name, email=email, phone=phone, notes=notes)
-    db.session.add(customer)
-    db.session.commit()
-    return redirect(url_for("list_customers"))
-
-
-@app.route("/customers/<int:customer_id>")
-def show_customer(customer_id):
-    customer = Customer.query.get_or_404(customer_id)
-    tasks = Task.query.filter_by(model="customers", record_id=customer_id).all()
-    return render_template(
-        "customer_detail.html",
-        customer=customer,
-        tasks=tasks,
-        title="Customer Detail",
-    )
-
-
-@app.route("/customers/<int:customer_id>/edit")
-def edit_customer(customer_id):
-    customer = Customer.query.get_or_404(customer_id)
-    return render_template(
-        "edit_customer.html", customer=customer, title="Edit Customer"
-    )
-
-
-@app.route("/customers/<int:customer_id>/update", methods=["POST"])
-def update_customer(customer_id):
-    customer = Customer.query.get_or_404(customer_id)
-    customer.name = request.form["name"]
-    customer.email = request.form.get("email")
-    customer.phone = request.form.get("phone")
-    customer.notes = request.form.get("notes")
-    db.session.commit()
-    return redirect(url_for("show_customer", customer_id=customer.id))
 
 
 @app.route("/leads")
@@ -213,6 +152,30 @@ def update_lead(lead_id):
     return redirect(url_for("show_lead", lead_id=lead.id))
 
 
+@app.route("/leads/<int:lead_id>/convert", methods=["POST"])
+def convert_lead(lead_id):
+    lead = Lead.query.get_or_404(lead_id)
+    account = Account(
+        name=lead.name,
+        industry="",
+        email=lead.email,
+        phone=lead.phone,
+        notes=None,
+    )
+    db.session.add(account)
+    db.session.commit()
+    contact = Contact(
+        name=lead.name,
+        email=lead.email,
+        phone=lead.phone,
+        account_id=account.id,
+    )
+    db.session.add(contact)
+    db.session.delete(lead)
+    db.session.commit()
+    return redirect(url_for("show_account", account_id=account.id))
+
+
 @app.route("/accounts")
 def list_accounts():
     accounts = Account.query.all()
@@ -229,6 +192,9 @@ def create_account():
     account = Account(
         name=request.form["name"],
         industry=request.form.get("industry"),
+        email=request.form.get("email"),
+        phone=request.form.get("phone"),
+        notes=request.form.get("notes"),
     )
     db.session.add(account)
     db.session.commit()
@@ -257,6 +223,9 @@ def update_account(account_id):
     account = Account.query.get_or_404(account_id)
     account.name = request.form["name"]
     account.industry = request.form.get("industry")
+    account.email = request.form.get("email")
+    account.phone = request.form.get("phone")
+    account.notes = request.form.get("notes")
     db.session.commit()
     return redirect(url_for("show_account", account_id=account.id))
 
