@@ -1,6 +1,8 @@
 # GitHub Codespaces ♥️ Flask
 
 Welcome to your shiny new Codespace running Flask! We've got everything fired up and running for you to explore Flask.
+This project now contains a simple Customer Relationship Management (CRM) application
+built with Flask and SQLite. It allows you to create and list customers.
 
 You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
 
@@ -11,3 +13,6 @@ To run this application:
 ```
 flask --debug run
 ```
+
+On first launch the application will create an SQLite database file named
+`crm.db` in the project directory.
