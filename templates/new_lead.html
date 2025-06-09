@@ -1,24 +1,38 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="App">
-        <header class="App-header">
-            <h1>New Lead</h1>
-            <form action="{{ url_for('create_lead') }}" method="post" class="two-column">
-                <p><input type="text" name="name" placeholder="Name" required></p>
-                <p><input type="email" name="email" placeholder="Email"></p>
-                <p><input type="text" name="phone" placeholder="Phone"></p>
-                <p><input type="text" name="company" placeholder="Company"></p>
-                <p><textarea name="notes" placeholder="Notes"></textarea></p>
-                <p>
-                    <select name="status">
-                        {% for s in statuses %}
-                            <option value="{{ s.value }}">{{ s.value }}</option>
-                        {% endfor %}
-                    </select>
-                </p>
-                <p><button type="submit">Create</button></p>
-            </form>
-            <p><a class="App-link" href="{{ url_for('list_leads') }}">Back</a></p>
-        </header>
+<h1>New Lead</h1>
+<form action="{{ url_for('create_lead') }}" method="post" class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Name *</label>
+        <input type="text" name="name" class="form-control" required>
     </div>
+    <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Phone</label>
+        <input type="text" name="phone" class="form-control">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Company</label>
+        <input type="text" name="company" class="form-control">
+    </div>
+    <div class="col-12">
+        <label class="form-label">Notes</label>
+        <textarea name="notes" class="form-control"></textarea>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+            {% for s in statuses %}
+                <option value="{{ s.value }}">{{ s.value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a class="btn btn-secondary" href="{{ url_for('list_leads') }}">Back</a>
+    </div>
+</form>
 {% endblock %}

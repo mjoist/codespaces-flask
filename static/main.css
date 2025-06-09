@@ -103,3 +103,6 @@ th {
 .kanban-column h3 {
     text-align: center;
 }
+
+input, select, textarea { color: #000; }
+.kanban-card { cursor: move; }
