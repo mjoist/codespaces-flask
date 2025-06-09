@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="App">
+        <header class="App-header">
+            <h1>Deals</h1>
+            <p><a class="App-link" href="{{ url_for('new_deal') }}">Add Deal</a></p>
+            <ul>
+                {% for deal in deals %}
+                    <li>{{ deal.name }} - {{ deal.stage or '' }}</li>
+                {% else %}
+                    <li>No deals found.</li>
+                {% endfor %}
+            </ul>
+        </header>
+    </div>
+{% endblock %}

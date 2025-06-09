@@ -2,15 +2,15 @@
 {% block content %}
     <div class="App">
         <header class="App-header">
-            <h1>New Customer</h1>
-            <form action="{{ url_for('create_customer') }}" method="post">
+            <h1>New Lead</h1>
+            <form action="{{ url_for('create_lead') }}" method="post">
                 <p><input type="text" name="name" placeholder="Name" required></p>
                 <p><input type="email" name="email" placeholder="Email"></p>
                 <p><input type="text" name="phone" placeholder="Phone"></p>
-                <p><textarea name="notes" placeholder="Notes"></textarea></p>
+                <p><input type="text" name="status" placeholder="Status"></p>
                 <p><button type="submit">Create</button></p>
             </form>
-            <p><a class="App-link" href="{{ url_for('list_customers') }}">Back</a></p>
+            <p><a class="App-link" href="{{ url_for('list_leads') }}">Back</a></p>
         </header>
     </div>
 {% endblock %}

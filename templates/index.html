@@ -1,9 +1,5 @@
-<head>
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-</head>
-
-<body>
+{% extends 'base.html' %}
+{% block content %}
     <div class="App">
         <header class="App-header">
             <img src="{{ url_for('static', filename='Octocat.png') }}" class="App-logo" alt="logo" />
@@ -16,6 +12,4 @@
             </p>
         </header>
     </div>
-</body>
-
-</html>
+{% endblock %}

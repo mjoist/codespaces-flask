@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="App">
+        <header class="App-header">
+            <h1>New Quote Line Item</h1>
+            <form action="{{ url_for('create_quote_line_item') }}" method="post">
+                <p>
+                    <select name="quote_id">
+                        {% for quote in quotes %}
+                            <option value="{{ quote.id }}">Quote {{ quote.id }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p>
+                    <select name="product_id">
+                        {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p><input type="number" name="quantity" placeholder="Quantity" value="1"></p>
+                <p><input type="number" step="0.01" name="price" placeholder="Price"></p>
+                <p><button type="submit">Create</button></p>
+            </form>
+            <p><a class="App-link" href="{{ url_for('list_quote_line_items') }}">Back</a></p>
+        </header>
+    </div>
+{% endblock %}

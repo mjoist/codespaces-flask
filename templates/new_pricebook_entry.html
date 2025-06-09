@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="App">
+        <header class="App-header">
+            <h1>New Price Book Entry</h1>
+            <form action="{{ url_for('create_pricebook_entry') }}" method="post">
+                <p>
+                    <select name="product_id">
+                        {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p>
+                    <select name="pricebook_id">
+                        {% for pricebook in pricebooks %}
+                            <option value="{{ pricebook.id }}">{{ pricebook.name }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p><input type="number" step="0.01" name="unit_price" placeholder="Unit Price"></p>
+                <p><button type="submit">Create</button></p>
+            </form>
+            <p><a class="App-link" href="{{ url_for('list_pricebook_entries') }}">Back</a></p>
+        </header>
+    </div>
+{% endblock %}
