@@ -15,20 +15,24 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_leads') }}"><i class="fa-solid fa-address-card"></i> Leads</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_accounts') }}"><i class="fa-solid fa-building"></i> Accounts</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_contacts') }}"><i class="fa-solid fa-user"></i> Contacts</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_deals') }}"><i class="fa-solid fa-handshake"></i> Deals</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_products') }}"><i class="fa-solid fa-box"></i> Products</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_pricebooks') }}"><i class="fa-solid fa-book"></i> Pricebooks</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_quotes') }}"><i class="fa-solid fa-file-invoice"></i> Quotes</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_tasks') }}"><i class="fa-solid fa-list"></i> Tasks</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_leads') }}"><i class="fa-solid fa-address-card"></i> {{ _('leads') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_accounts') }}"><i class="fa-solid fa-building"></i> {{ _('accounts') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_contacts') }}"><i class="fa-solid fa-user"></i> {{ _('contacts') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_deals') }}"><i class="fa-solid fa-handshake"></i> {{ _('deals') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_products') }}"><i class="fa-solid fa-box"></i> {{ _('products') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_pricebooks') }}"><i class="fa-solid fa-book"></i> {{ _('pricebooks') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_quotes') }}"><i class="fa-solid fa-file-invoice"></i> {{ _('quotes') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_tasks') }}"><i class="fa-solid fa-list"></i> {{ _('tasks') }}</a></li>
                 </ul>
+                <form class="d-flex" action="{{ url_for('global_search') }}" method="get">
+                    <input class="form-control form-control-sm me-2" type="search" placeholder="{{ _('search') }}" name="q">
+                </form>
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                         {% if current_user.is_admin %}
                             <li class="nav-item"><a class="nav-link" href="{{ url_for('admin') }}"><i class="fa-solid fa-gear"></i> Admin</a></li>
                         {% endif %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}"><i class="fa-solid fa-language"></i> {{ _('settings') }}</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>

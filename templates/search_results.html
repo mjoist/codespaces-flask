@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ _('search') }} "{{ q }}"</h1>
+{% for key, items in results.items() %}
+<h2>{{ _(key) }}</h2>
+<ul>
+    {% for name, url in items %}
+        <li><a href="{{ url }}">{{ name }}</a></li>
+    {% else %}
+        <li>{{ _('none_found') }}</li>
+    {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

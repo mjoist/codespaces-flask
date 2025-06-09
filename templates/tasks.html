@@ -1,11 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Tasks</h1>
+<h1>{{ _('tasks') }}</h1>
 <p>
-    <a class="App-link" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    <a class="App-link" href="{{ url_for('dashboard') }}">{{ _('back_dashboard') }}</a>
     |
-    <a class="App-link" href="{{ url_for('tasks_kanban') }}">Kanban View</a>
+    <a class="App-link" href="{{ url_for('tasks_kanban') }}">{{ _('kanban_view') }}</a>
 </p>
+<form method="get" class="mb-2">
+    <input type="text" name="q" value="{{ q or '' }}" placeholder="{{ _('search') }}">
+    <button type="submit">{{ _('search') }}</button>
+</form>
 <table>
 <tr><th>Description</th><th>Due</th><th>Status</th><th>Model</th><th>Record</th></tr>
 {% for task in tasks %}
@@ -17,7 +21,7 @@
 <td>{{ task.record_id }}</td>
 </tr>
 {% else %}
-<tr><td colspan="5">No tasks found.</td></tr>
+<tr><td colspan="5">{{ _('none_found') }}</td></tr>
 {% endfor %}
 </table>
 {% endblock %}

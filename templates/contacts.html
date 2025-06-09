@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="App">
-        <header class="App-header">
-            <h1>Contacts</h1>
-            <p><a class="App-link" href="{{ url_for('new_contact') }}">Add Contact</a></p>
-            <table>
-                <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
-                {% for contact in contacts %}
-                    <tr>
-                        <td><a href="{{ url_for('show_contact', contact_id=contact.id) }}">{{ contact.name }}</a></td>
-                        <td>{{ contact.email or '' }}</td>
-                        <td><a href="{{ url_for('edit_contact', contact_id=contact.id) }}">Edit</a></td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="3">No contacts found.</td></tr>
-                {% endfor %}
-            </table>
-        </header>
-    </div>
+<h1>{{ _('contacts') }}</h1>
+<p><a class="App-link" href="{{ url_for('new_contact') }}">{{ _('add_contact') }}</a></p>
+<form method="get" class="mb-2">
+    <input type="text" name="q" value="{{ q or '' }}" placeholder="{{ _('search') }}">
+    <button type="submit">{{ _('search') }}</button>
+</form>
+<table>
+    <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
+    {% for contact in contacts %}
+        <tr>
+            <td><a href="{{ url_for('show_contact', contact_id=contact.id) }}">{{ contact.name }}</a></td>
+            <td>{{ contact.email or '' }}</td>
+            <td><a href="{{ url_for('edit_contact', contact_id=contact.id) }}">Edit</a></td>
+        </tr>
+    {% else %}
+        <tr><td colspan="3">{{ _('none_found') }}</td></tr>
+    {% endfor %}
+</table>
 {% endblock %}

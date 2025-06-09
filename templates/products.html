@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="App">
-        <header class="App-header">
-            <h1>Products</h1>
-            <p><a class="App-link" href="{{ url_for('new_product') }}">Add Product</a></p>
-            <table>
-                <tr><th>Name</th><th>Price</th><th>Actions</th></tr>
-                {% for product in products %}
-                    <tr>
-                        <td><a href="{{ url_for('show_product', product_id=product.id) }}">{{ product.name }}</a></td>
-                        <td>{{ product.price }}</td>
-                        <td><a href="{{ url_for('edit_product', product_id=product.id) }}">Edit</a></td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="3">No products found.</td></tr>
-                {% endfor %}
-            </table>
-        </header>
-    </div>
+<h1>{{ _('products') }}</h1>
+<p><a class="App-link" href="{{ url_for('new_product') }}">{{ _('add_product') }}</a></p>
+<form method="get" class="mb-2">
+    <input type="text" name="q" value="{{ q or '' }}" placeholder="{{ _('search') }}">
+    <button type="submit">{{ _('search') }}</button>
+</form>
+<table>
+    <tr><th>Name</th><th>Price</th><th>Actions</th></tr>
+    {% for product in products %}
+        <tr>
+            <td><a href="{{ url_for('show_product', product_id=product.id) }}">{{ product.name }}</a></td>
+            <td>{{ product.price }}</td>
+            <td><a href="{{ url_for('edit_product', product_id=product.id) }}">Edit</a></td>
+        </tr>
+    {% else %}
+        <tr><td colspan="3">{{ _('none_found') }}</td></tr>
+    {% endfor %}
+</table>
 {% endblock %}
