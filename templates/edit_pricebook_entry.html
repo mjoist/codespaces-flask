@@ -1,15 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Edit Price Book Entry</h1>
-<form action="{{ url_for('update_pricebook_entry', entry_id=entry.id) }}" method="post">
-{% from 'macros.html' import lookup %}
-<p>
-    {{ lookup('product_id', products, 'name', entry.product_id) }}
-</p>
-<p>
-    {{ lookup('pricebook_id', pricebooks, 'name', entry.pricebook_id) }}
-</p>
-<p><input type="number" step="0.01" name="unit_price" value="{{ entry.unit_price }}"></p>
-<p><button type="submit">Update</button></p>
+<form action="{{ url_for('update_pricebook_entry', entry_id=entry.id) }}" method="post" class="row g-3">
+    {% from 'macros.html' import lookup %}
+    <div class="col-md-6">
+        <label class="form-label">Product</label>
+        {{ lookup('product_id', products, 'name', entry.product_id) }}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Pricebook</label>
+        {{ lookup('pricebook_id', pricebooks, 'name', entry.pricebook_id) }}
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Unit Price</label>
+        <input type="number" step="0.01" name="unit_price" class="form-control" value="{{ entry.unit_price }}">
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Update</button>
+    </div>
 </form>
 {% endblock %}

@@ -1,18 +1,27 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>New Task</h1>
-<form action="{{ url_for('create_task') }}" method="post" class="two-column">
-<input type="hidden" name="model" value="{{ model }}">
-<input type="hidden" name="record_id" value="{{ record_id }}">
-<p><input type="text" name="description" placeholder="Description" required></p>
-<p><input type="date" name="due_date"></p>
-<p>
-    <select name="status">
-        {% for s in statuses %}
-            <option value="{{ s.value }}">{{ s.value }}</option>
-        {% endfor %}
-    </select>
-</p>
-<p><button type="submit">Create</button></p>
+<form action="{{ url_for('create_task') }}" method="post" class="row g-3">
+    <input type="hidden" name="model" value="{{ model }}">
+    <input type="hidden" name="record_id" value="{{ record_id }}">
+    <div class="col-md-6">
+        <label class="form-label">Description *</label>
+        <input type="text" name="description" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Due Date</label>
+        <input type="date" name="due_date" class="form-control">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select">
+            {% for s in statuses %}
+                <option value="{{ s.value }}">{{ s.value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Create</button>
+    </div>
 </form>
 {% endblock %}
