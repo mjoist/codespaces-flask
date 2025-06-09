@@ -1,4 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    session,
+)
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
     LoginManager,
@@ -10,6 +18,7 @@ from flask_login import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+import os
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///crm.db"
@@ -19,6 +28,44 @@ db = SQLAlchemy(app)
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+
+# --- Translation handling -------------------------------------------------
+translations_cache = {}
+AVAILABLE_LANGS = ["en", "de"]
+
+
+def _parse_simple_yaml(path):
+    data = {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    data[k.strip()] = v.strip().strip('"').strip("'")
+    except FileNotFoundError:
+        pass
+    return data
+
+
+def get_translations():
+    lang = session.get("lang", "en")
+    if lang not in translations_cache:
+        fname = os.path.join(os.path.dirname(__file__), "locales", f"{lang}.yml")
+        translations_cache[lang] = _parse_simple_yaml(fname)
+    return translations_cache[lang]
+
+
+@app.context_processor
+def inject_translator():
+    t = get_translations()
+
+    def _(key):
+        return t.get(key, key)
+
+    return {"_": _}
 
 
 @login_manager.user_loader
@@ -154,8 +201,17 @@ def dashboard():
 
 @app.route("/leads")
 def list_leads():
-    leads = Lead.query.all()
-    return render_template("leads.html", leads=leads, title="Leads")
+    q = request.args.get("q", "")
+    query = Lead.query
+    if q:
+        query = query.filter(Lead.name.ilike(f"%{q}%"))
+    leads = query.all()
+    return render_template(
+        "leads.html",
+        leads=leads,
+        q=q,
+        title=get_translations().get("leads", "Leads"),
+    )
 
 
 @app.route("/leads/kanban")
@@ -245,8 +301,17 @@ def convert_lead(lead_id):
 
 @app.route("/accounts")
 def list_accounts():
-    accounts = Account.query.all()
-    return render_template("accounts.html", accounts=accounts, title="Accounts")
+    q = request.args.get("q", "")
+    query = Account.query
+    if q:
+        query = query.filter(Account.name.ilike(f"%{q}%"))
+    accounts = query.all()
+    return render_template(
+        "accounts.html",
+        accounts=accounts,
+        q=q,
+        title=get_translations().get("accounts", "Accounts"),
+    )
 
 
 @app.route("/accounts/new")
@@ -301,8 +366,17 @@ def update_account(account_id):
 
 @app.route("/contacts")
 def list_contacts():
-    contacts = Contact.query.all()
-    return render_template("contacts.html", contacts=contacts, title="Contacts")
+    q = request.args.get("q", "")
+    query = Contact.query
+    if q:
+        query = query.filter(Contact.name.ilike(f"%{q}%"))
+    contacts = query.all()
+    return render_template(
+        "contacts.html",
+        contacts=contacts,
+        q=q,
+        title=get_translations().get("contacts", "Contacts"),
+    )
 
 
 @app.route("/contacts/new")
@@ -357,8 +431,17 @@ def update_contact(contact_id):
 
 @app.route("/deals")
 def list_deals():
-    deals = Deal.query.all()
-    return render_template("deals.html", deals=deals, title="Deals")
+    q = request.args.get("q", "")
+    query = Deal.query
+    if q:
+        query = query.filter(Deal.name.ilike(f"%{q}%"))
+    deals = query.all()
+    return render_template(
+        "deals.html",
+        deals=deals,
+        q=q,
+        title=get_translations().get("deals", "Deals"),
+    )
 
 
 @app.route("/deals/kanban")
@@ -426,8 +509,17 @@ def update_deal(deal_id):
 
 @app.route("/products")
 def list_products():
-    products = Product.query.all()
-    return render_template("products.html", products=products, title="Products")
+    q = request.args.get("q", "")
+    query = Product.query
+    if q:
+        query = query.filter(Product.name.ilike(f"%{q}%"))
+    products = query.all()
+    return render_template(
+        "products.html",
+        products=products,
+        q=q,
+        title=get_translations().get("products", "Products"),
+    )
 
 
 @app.route("/products/new")
@@ -476,8 +568,17 @@ def update_product(product_id):
 
 @app.route("/pricebooks")
 def list_pricebooks():
-    pricebooks = Pricebook.query.all()
-    return render_template("pricebooks.html", pricebooks=pricebooks, title="Pricebooks")
+    q = request.args.get("q", "")
+    query = Pricebook.query
+    if q:
+        query = query.filter(Pricebook.name.ilike(f"%{q}%"))
+    pricebooks = query.all()
+    return render_template(
+        "pricebooks.html",
+        pricebooks=pricebooks,
+        q=q,
+        title=get_translations().get("pricebooks", "Pricebooks"),
+    )
 
 
 @app.route("/pricebooks/new")
@@ -527,9 +628,20 @@ def update_pricebook(pricebook_id):
 
 @app.route("/pricebook_entries")
 def list_pricebook_entries():
-    entries = PriceBookEntry.query.all()
+    q = request.args.get("q", "")
+    query = PriceBookEntry.query
+    if q:
+        try:
+            entry_id = int(q)
+            query = query.filter(PriceBookEntry.id == entry_id)
+        except ValueError:
+            query = query.filter(PriceBookEntry.id == -1)
+    entries = query.all()
     return render_template(
-        "pricebook_entries.html", entries=entries, title="Price Book Entries"
+        "pricebook_entries.html",
+        entries=entries,
+        q=q,
+        title=get_translations().get("pricebook_entries", "Price Book Entries"),
     )
 
 
@@ -595,8 +707,17 @@ def update_pricebook_entry(entry_id):
 
 @app.route("/quotes")
 def list_quotes():
-    quotes = Quote.query.all()
-    return render_template("quotes.html", quotes=quotes, title="Quotes")
+    q = request.args.get("q", "")
+    query = Quote.query
+    if q:
+        query = query.filter(Quote.id == q)
+    quotes = query.all()
+    return render_template(
+        "quotes.html",
+        quotes=quotes,
+        q=q,
+        title=get_translations().get("quotes", "Quotes"),
+    )
 
 
 @app.route("/quotes/new")
@@ -645,8 +766,17 @@ def update_quote(quote_id):
 
 @app.route("/quote_line_items")
 def list_quote_line_items():
-    items = QuoteLineItem.query.all()
-    return render_template("quote_line_items.html", items=items, title="Quote Line Items")
+    q = request.args.get("q", "")
+    query = QuoteLineItem.query
+    if q:
+        query = query.filter(QuoteLineItem.id == q)
+    items = query.all()
+    return render_template(
+        "quote_line_items.html",
+        items=items,
+        q=q,
+        title=get_translations().get("quote_line_items", "Quote Line Items"),
+    )
 
 
 @app.route("/quote_line_items/new")
@@ -713,8 +843,17 @@ def update_quote_line_item(item_id):
 
 @app.route("/tasks")
 def list_tasks():
-    tasks = Task.query.all()
-    return render_template("tasks.html", tasks=tasks, title="Tasks")
+    q = request.args.get("q", "")
+    query = Task.query
+    if q:
+        query = query.filter(Task.description.ilike(f"%{q}%"))
+    tasks = query.all()
+    return render_template(
+        "tasks.html",
+        tasks=tasks,
+        q=q,
+        title=get_translations().get("tasks", "Tasks"),
+    )
 
 
 @app.route("/tasks/kanban")
@@ -752,6 +891,30 @@ def create_task():
     return redirect(url_for("list_tasks"))
 
 
+@app.route("/search")
+def global_search():
+    q = request.args.get("q", "")
+    like = f"%{q}%"
+    results = {
+        "leads": [(l.name, url_for("show_lead", lead_id=l.id)) for l in Lead.query.filter(Lead.name.ilike(like)).all()],
+        "accounts": [
+            (a.name, url_for("show_account", account_id=a.id))
+            for a in Account.query.filter(Account.name.ilike(like)).all()
+        ],
+        "contacts": [
+            (c.name, url_for("show_contact", contact_id=c.id))
+            for c in Contact.query.filter(Contact.name.ilike(like)).all()
+        ],
+        "deals": [
+            (d.name, url_for("show_deal", deal_id=d.id))
+            for d in Deal.query.filter(Deal.name.ilike(like)).all()
+        ],
+    }
+    return render_template(
+        "search_results.html", q=q, results=results, title=f"Search: {q}"
+    )
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -761,6 +924,22 @@ def login():
             return redirect(url_for("dashboard"))
         flash("Invalid credentials")
     return render_template("login.html", title="Login")
+
+
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+    if request.method == "POST":
+        lang = request.form.get("lang", "en")
+        if lang in AVAILABLE_LANGS:
+            session["lang"] = lang
+        return redirect(url_for("settings"))
+    current = session.get("lang", "en")
+    return render_template(
+        "settings.html",
+        languages=AVAILABLE_LANGS,
+        current=current,
+        title=get_translations().get("settings", "Settings"),
+    )
 
 
 @app.route("/logout")

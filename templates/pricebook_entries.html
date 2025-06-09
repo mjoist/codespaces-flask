@@ -1,22 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="App">
-        <header class="App-header">
-            <h1>Price Book Entries</h1>
-            <p><a class="App-link" href="{{ url_for('new_pricebook_entry') }}">Add Entry</a></p>
-            <table>
-                <tr><th>Product</th><th>Pricebook</th><th>Price</th><th>Actions</th></tr>
-                {% for entry in entries %}
-                    <tr>
-                        <td>{{ entry.product.name }}</td>
-                        <td>{{ entry.pricebook.name }}</td>
-                        <td>{{ entry.unit_price }}</td>
-                        <td><a href="{{ url_for('show_pricebook_entry', entry_id=entry.id) }}">View</a></td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="4">No entries found.</td></tr>
-                {% endfor %}
-            </table>
-        </header>
-    </div>
+<h1>{{ _('pricebook_entries') }}</h1>
+<p><a class="App-link" href="{{ url_for('new_pricebook_entry') }}">{{ _('add_pricebook_entry') }}</a></p>
+<form method="get" class="mb-2">
+    <input type="text" name="q" value="{{ q or '' }}" placeholder="{{ _('search') }}">
+    <button type="submit">{{ _('search') }}</button>
+</form>
+<table>
+    <tr><th>Product</th><th>Pricebook</th><th>Price</th><th>Actions</th></tr>
+    {% for entry in entries %}
+        <tr>
+            <td>{{ entry.product.name }}</td>
+            <td>{{ entry.pricebook.name }}</td>
+            <td>{{ entry.unit_price }}</td>
+            <td><a href="{{ url_for('show_pricebook_entry', entry_id=entry.id) }}">View</a></td>
+        </tr>
+    {% else %}
+        <tr><td colspan="4">{{ _('none_found') }}</td></tr>
+    {% endfor %}
+</table>
 {% endblock %}

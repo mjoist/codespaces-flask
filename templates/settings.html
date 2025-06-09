@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ _('settings') }}</h1>
+<form method="post">
+    <div class="mb-3">
+        <label for="lang" class="form-label">Language</label>
+        <select id="lang" name="lang" class="form-select">
+            {% for code in languages %}
+            <option value="{{ code }}" {% if code == current %}selected{% endif %}>{{ code }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}
