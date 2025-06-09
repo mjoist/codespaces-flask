@@ -51,7 +51,11 @@ def _parse_simple_yaml(path):
 
 
 def get_translations():
-    lang = session.get("lang", "en")
+    lang = (
+        current_user.language
+        if current_user.is_authenticated
+        else session.get("lang", "en")
+    )
     if lang not in translations_cache:
         fname = os.path.join(os.path.dirname(__file__), "locales", f"{lang}.yml")
         translations_cache[lang] = _parse_simple_yaml(fname)
@@ -78,6 +82,10 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     is_admin = db.Column(db.Boolean, default=False)
+    language = db.Column(db.String(10), default="en")
+    timezone = db.Column(db.String(50), default="UTC")
+    country = db.Column(db.String(50))
+    currency = db.Column(db.String(3), default="USD")
 
 
 class StatusOption(db.Model):
@@ -928,6 +936,7 @@ def login():
         user = User.query.filter_by(username=request.form["username"]).first()
         if user and check_password_hash(user.password_hash, request.form["password"]):
             login_user(user)
+            session["lang"] = user.language
             return redirect(url_for("dashboard"))
         flash("Invalid credentials")
     return render_template("login.html", title="Login")
@@ -937,14 +946,39 @@ def login():
 def settings():
     if request.method == "POST":
         lang = request.form.get("lang", "en")
-        if lang in AVAILABLE_LANGS:
-            session["lang"] = lang
+        tz = request.form.get("timezone", "UTC")
+        country = request.form.get("country", "")
+        currency = request.form.get("currency", "USD")
+        if current_user.is_authenticated:
+            if lang in AVAILABLE_LANGS:
+                current_user.language = lang
+                session["lang"] = lang
+            current_user.timezone = tz
+            current_user.country = country
+            if currency in ("USD", "EUR"):
+                current_user.currency = currency
+            db.session.commit()
+        else:
+            if lang in AVAILABLE_LANGS:
+                session["lang"] = lang
         return redirect(url_for("settings"))
-    current = session.get("lang", "en")
+    if current_user.is_authenticated:
+        current = current_user.language
+        tz = current_user.timezone
+        country = current_user.country or ""
+        currency = current_user.currency
+    else:
+        current = session.get("lang", "en")
+        tz = "UTC"
+        country = ""
+        currency = "USD"
     return render_template(
         "settings.html",
         languages=AVAILABLE_LANGS,
         current=current,
+        tz=tz,
+        country=country,
+        currency=currency,
         title=get_translations().get("settings", "Settings"),
     )
 
@@ -952,6 +986,7 @@ def settings():
 @app.route("/logout")
 def logout():
     logout_user()
+    session.pop("lang", None)
     return redirect(url_for("login"))
 
 
@@ -988,7 +1023,13 @@ def create_user():
         return redirect(url_for("dashboard"))
     username = request.form["username"]
     password = generate_password_hash(request.form["password"])
-    user = User(username=username, password_hash=password)
+    user = User(
+        username=username,
+        password_hash=password,
+        language="en",
+        timezone="UTC",
+        currency="USD",
+    )
     db.session.add(user)
     db.session.commit()
     return redirect(url_for("admin_users"))
@@ -1102,11 +1143,32 @@ def api_get_record(model, record_id):
 
 with app.app_context():
     db.create_all()
+    inspector = db.inspect(db.engine)
+    cols = {c['name'] for c in inspector.get_columns('user')}
+    added = False
+    if 'language' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN language VARCHAR(10) DEFAULT 'en'"))
+        added = True
+    if 'timezone' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN timezone VARCHAR(50) DEFAULT 'UTC'"))
+        added = True
+    if 'country' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN country VARCHAR(50)"))
+        added = True
+    if 'currency' not in cols:
+        db.session.execute(db.text("ALTER TABLE user ADD COLUMN currency VARCHAR(3) DEFAULT 'USD'"))
+        added = True
+    if added:
+        db.session.commit()
     if not User.query.filter_by(username="admin").first():
         admin_user = User(
             username="admin",
             password_hash=generate_password_hash("admin"),
             is_admin=True,
+            language="en",
+            timezone="UTC",
+            country="",
+            currency="USD",
         )
         db.session.add(admin_user)
         db.session.commit()
