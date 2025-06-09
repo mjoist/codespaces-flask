@@ -953,7 +953,10 @@ def logout():
 def admin_overview():
     if not current_user.is_admin:
         return redirect(url_for("dashboard"))
-    return render_template("admin_overview.html", title="Admin Overview")
+    return render_template(
+        "admin_overview.html",
+        title=get_translations().get("admin_overview", "Admin Overview"),
+    )
 
 
 @app.route("/admin/users")
@@ -962,7 +965,11 @@ def admin_users():
     if not current_user.is_admin:
         return redirect(url_for("dashboard"))
     users = User.query.all()
-    return render_template("admin.html", users=users, title="User Administration")
+    return render_template(
+        "admin.html",
+        users=users,
+        title=get_translations().get("user_management", "User Management"),
+    )
 
 
 @app.route("/admin/users/create", methods=["POST"])
@@ -995,7 +1002,11 @@ def manage_statuses():
     if not current_user.is_admin:
         return redirect(url_for("dashboard"))
     statuses = StatusOption.query.all()
-    return render_template("statuses.html", statuses=statuses, title="Manage Statuses")
+    return render_template(
+        "statuses.html",
+        statuses=statuses,
+        title=get_translations().get("manage_statuses", "Manage Statuses"),
+    )
 
 
 @app.route("/admin/statuses/create", methods=["POST"])
