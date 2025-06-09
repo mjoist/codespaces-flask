@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Manage Statuses</h1>
-<p><a class="App-link" href="{{ url_for('admin') }}">Back to Admin</a></p>
+<h1>{{ _('manage_statuses') }}</h1>
+<p><a class="App-link" href="{{ url_for('admin_overview') }}">{{ _('back_admin') }}</a></p>
 <form action="{{ url_for('create_status') }}" method="post" class="two-column">
     <p>
         <input type="text" name="model" placeholder="Model" required>
