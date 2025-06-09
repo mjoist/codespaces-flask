@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>{{ pricebook.name }}</h1>
+<p>Description: {{ pricebook.description }}</p>
 <p><a class="App-link" href="{{ url_for('edit_pricebook', pricebook_id=pricebook.id) }}">Edit</a></p>
 <p><a class="App-link" href="{{ url_for('new_task', model='pricebooks', record_id=pricebook.id) }}">Add Task</a></p>
 <h2>Tasks</h2>

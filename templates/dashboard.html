@@ -1,14 +1,33 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Dashboard</h1>
-<table>
-<tr><th>Object</th><th>Count</th></tr>
-<tr><td>Leads</td><td>{{ counts.leads }}</td></tr>
-<tr><td>Accounts</td><td>{{ counts.accounts }}</td></tr>
-<tr><td>Contacts</td><td>{{ counts.contacts }}</td></tr>
-<tr><td>Deals</td><td>{{ counts.deals }}</td></tr>
-<tr><td>Products</td><td>{{ counts.products }}</td></tr>
-<tr><td>Pricebooks</td><td>{{ counts.pricebooks }}</td></tr>
-<tr><td>Quotes</td><td>{{ counts.quotes }}</td></tr>
-</table>
+<div class="two-column">
+    <div>
+        <canvas id="countChart"></canvas>
+    </div>
+    <div>
+        <h2>Tasks</h2>
+        <ul>
+        {% for task in tasks %}
+            <li>{{ task.description }} ({{ task.status }})</li>
+        {% else %}
+            <li>No tasks</li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('countChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Leads','Accounts','Contacts','Deals','Products','Pricebooks','Quotes'],
+        datasets: [{
+            label: 'Records',
+            data: [{{ counts.leads }},{{ counts.accounts }},{{ counts.contacts }},{{ counts.deals }},{{ counts.products }},{{ counts.pricebooks }},{{ counts.quotes }}]
+        }]
+    }
+});
+</script>
 {% endblock %}

@@ -3,11 +3,12 @@
     <div class="App">
         <header class="App-header">
             <h1>New Account</h1>
-            <form action="{{ url_for('create_account') }}" method="post">
+            <form action="{{ url_for('create_account') }}" method="post" class="two-column">
                 <p><input type="text" name="name" placeholder="Name" required></p>
                 <p><input type="text" name="industry" placeholder="Industry"></p>
                 <p><input type="email" name="email" placeholder="Email"></p>
                 <p><input type="text" name="phone" placeholder="Phone"></p>
+                <p><input type="text" name="address" placeholder="Address"></p>
                 <p><textarea name="notes" placeholder="Notes"></textarea></p>
                 <p><button type="submit">Create</button></p>
             </form>

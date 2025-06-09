@@ -16,6 +16,14 @@
             <li><a href="{{ url_for('list_pricebooks') }}">Pricebooks</a></li>
             <li><a href="{{ url_for('list_quotes') }}">Quotes</a></li>
             <li><a href="{{ url_for('list_tasks') }}">Tasks</a></li>
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                    <li class="right"><a href="{{ url_for('admin') }}">Admin</a></li>
+                {% endif %}
+                <li class="right"><a href="{{ url_for('logout') }}">Logout</a></li>
+            {% else %}
+                <li class="right"><a href="{{ url_for('login') }}">Login</a></li>
+            {% endif %}
         </ul>
     </nav>
     <div class="content">
