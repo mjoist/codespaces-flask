@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Dashboard</h1>
+<table>
+<tr><th>Object</th><th>Count</th></tr>
+<tr><td>Customers</td><td>{{ counts.customers }}</td></tr>
+<tr><td>Leads</td><td>{{ counts.leads }}</td></tr>
+<tr><td>Accounts</td><td>{{ counts.accounts }}</td></tr>
+<tr><td>Contacts</td><td>{{ counts.contacts }}</td></tr>
+<tr><td>Deals</td><td>{{ counts.deals }}</td></tr>
+<tr><td>Products</td><td>{{ counts.products }}</td></tr>
+<tr><td>Pricebooks</td><td>{{ counts.pricebooks }}</td></tr>
+<tr><td>Quotes</td><td>{{ counts.quotes }}</td></tr>
+</table>
+{% endblock %}

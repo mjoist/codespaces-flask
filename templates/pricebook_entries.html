@@ -4,13 +4,19 @@
         <header class="App-header">
             <h1>Price Book Entries</h1>
             <p><a class="App-link" href="{{ url_for('new_pricebook_entry') }}">Add Entry</a></p>
-            <ul>
+            <table>
+                <tr><th>Product</th><th>Pricebook</th><th>Price</th><th>Actions</th></tr>
                 {% for entry in entries %}
-                    <li>{{ entry.product.name }} @ {{ entry.unit_price }} in {{ entry.pricebook.name }}</li>
+                    <tr>
+                        <td>{{ entry.product.name }}</td>
+                        <td>{{ entry.pricebook.name }}</td>
+                        <td>{{ entry.unit_price }}</td>
+                        <td><a href="{{ url_for('show_pricebook_entry', entry_id=entry.id) }}">View</a></td>
+                    </tr>
                 {% else %}
-                    <li>No entries found.</li>
+                    <tr><td colspan="4">No entries found.</td></tr>
                 {% endfor %}
-            </ul>
+            </table>
         </header>
     </div>
 {% endblock %}

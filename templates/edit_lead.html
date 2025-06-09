@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Edit Lead</h1>
+<form action="{{ url_for('update_lead', lead_id=lead.id) }}" method="post">
+<p><input type="text" name="name" value="{{ lead.name }}" required></p>
+<p><input type="email" name="email" value="{{ lead.email }}"></p>
+<p><input type="text" name="phone" value="{{ lead.phone }}"></p>
+<p><input type="text" name="status" value="{{ lead.status }}"></p>
+<p><button type="submit">Update</button></p>
+</form>
+{% endblock %}

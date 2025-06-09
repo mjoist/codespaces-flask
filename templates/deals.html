@@ -4,13 +4,18 @@
         <header class="App-header">
             <h1>Deals</h1>
             <p><a class="App-link" href="{{ url_for('new_deal') }}">Add Deal</a></p>
-            <ul>
+            <table>
+                <tr><th>Name</th><th>Stage</th><th>Actions</th></tr>
                 {% for deal in deals %}
-                    <li>{{ deal.name }} - {{ deal.stage or '' }}</li>
+                    <tr>
+                        <td><a href="{{ url_for('show_deal', deal_id=deal.id) }}">{{ deal.name }}</a></td>
+                        <td>{{ deal.stage }}</td>
+                        <td><a href="{{ url_for('edit_deal', deal_id=deal.id) }}">Edit</a></td>
+                    </tr>
                 {% else %}
-                    <li>No deals found.</li>
+                    <tr><td colspan="3">No deals found.</td></tr>
                 {% endfor %}
-            </ul>
+            </table>
         </header>
     </div>
 {% endblock %}

@@ -4,13 +4,20 @@
         <header class="App-header">
             <h1>Quote Line Items</h1>
             <p><a class="App-link" href="{{ url_for('new_quote_line_item') }}">Add Line Item</a></p>
-            <ul>
+            <table>
+                <tr><th>Quote</th><th>Product</th><th>Qty</th><th>Price</th><th>Actions</th></tr>
                 {% for item in items %}
-                    <li>{{ item.quote.id }} - {{ item.product.name }} x {{ item.quantity }} @ {{ item.price }}</li>
+                    <tr>
+                        <td>{{ item.quote.id }}</td>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price }}</td>
+                        <td><a href="{{ url_for('show_quote_line_item', item_id=item.id) }}">View</a></td>
+                    </tr>
                 {% else %}
-                    <li>No items found.</li>
+                    <tr><td colspan="5">No items found.</td></tr>
                 {% endfor %}
-            </ul>
+            </table>
         </header>
     </div>
 {% endblock %}

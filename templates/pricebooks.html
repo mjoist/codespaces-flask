@@ -4,13 +4,17 @@
         <header class="App-header">
             <h1>Pricebooks</h1>
             <p><a class="App-link" href="{{ url_for('new_pricebook') }}">Add Pricebook</a></p>
-            <ul>
+            <table>
+                <tr><th>Name</th><th>Actions</th></tr>
                 {% for pricebook in pricebooks %}
-                    <li>{{ pricebook.name }}</li>
+                    <tr>
+                        <td><a href="{{ url_for('show_pricebook', pricebook_id=pricebook.id) }}">{{ pricebook.name }}</a></td>
+                        <td><a href="{{ url_for('edit_pricebook', pricebook_id=pricebook.id) }}">Edit</a></td>
+                    </tr>
                 {% else %}
-                    <li>No pricebooks found.</li>
+                    <tr><td colspan="2">No pricebooks found.</td></tr>
                 {% endfor %}
-            </ul>
+            </table>
         </header>
     </div>
 {% endblock %}

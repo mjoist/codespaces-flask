@@ -4,13 +4,18 @@
         <header class="App-header">
             <h1>Contacts</h1>
             <p><a class="App-link" href="{{ url_for('new_contact') }}">Add Contact</a></p>
-            <ul>
+            <table>
+                <tr><th>Name</th><th>Email</th><th>Actions</th></tr>
                 {% for contact in contacts %}
-                    <li>{{ contact.name }} - {{ contact.email or '' }}</li>
+                    <tr>
+                        <td><a href="{{ url_for('show_contact', contact_id=contact.id) }}">{{ contact.name }}</a></td>
+                        <td>{{ contact.email or '' }}</td>
+                        <td><a href="{{ url_for('edit_contact', contact_id=contact.id) }}">Edit</a></td>
+                    </tr>
                 {% else %}
-                    <li>No contacts found.</li>
+                    <tr><td colspan="3">No contacts found.</td></tr>
                 {% endfor %}
-            </ul>
+            </table>
         </header>
     </div>
 {% endblock %}
