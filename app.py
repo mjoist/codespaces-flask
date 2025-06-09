@@ -186,6 +186,7 @@ def require_login():
 
 @app.route("/")
 def dashboard():
+    q = request.args.get("q", "")
     counts = {
         "leads": Lead.query.count(),
         "accounts": Account.query.count(),
@@ -195,9 +196,12 @@ def dashboard():
         "pricebooks": Pricebook.query.count(),
         "quotes": Quote.query.count(),
     }
-    tasks = Task.query.all()
+    query = Task.query
+    if q:
+        query = query.filter(Task.description.ilike(f"%{q}%"))
+    tasks = query.all()
     return render_template(
-        "dashboard.html", counts=counts, tasks=tasks, title="Dashboard"
+        "dashboard.html", counts=counts, tasks=tasks, q=q, title="Dashboard"
     )
 
 

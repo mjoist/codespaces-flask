@@ -1,18 +1,30 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{{ contact.name }}</h1>
-<p>Email: {{ contact.email }}</p>
-<p>Phone: {{ contact.phone }}</p>
-<p>Title: {{ contact.title }}</p>
-<p>Account: {{ contact.account.name if contact.account else '' }}</p>
-<p><a class="App-link" href="{{ url_for('edit_contact', contact_id=contact.id) }}">Edit</a></p>
-<p><a class="App-link" href="{{ url_for('new_task', model='contacts', record_id=contact.id) }}">Add Task</a></p>
-<h2>Tasks</h2>
-<ul>
-{% for task in tasks %}
-<li>{{ task.description }} ({{ task.due_date }})</li>
-{% else %}
-<li>No tasks found.</li>
-{% endfor %}
-</ul>
+<div class="row">
+    <div class="col-md-3">
+        <div class="sticky-top pt-3">
+            <h5>Related Lists</h5>
+            <ul class="nav flex-column related-nav">
+                <li class="nav-item"><a class="nav-link" href="#tasks">Tasks ({{ tasks|length }})</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <h1>{{ contact.name }}</h1>
+        <p>Email: {{ contact.email }}</p>
+        <p>Phone: {{ contact.phone }}</p>
+        <p>Title: {{ contact.title }}</p>
+        <p>Account: {{ contact.account.name if contact.account else '' }}</p>
+        <p><a class="App-link" href="{{ url_for('edit_contact', contact_id=contact.id) }}">Edit</a></p>
+        <p><a class="App-link" href="{{ url_for('new_task', model='contacts', record_id=contact.id) }}">Add Task</a></p>
+        <h2 id="tasks">Tasks</h2>
+        <ul class="list-group mb-3">
+        {% for task in tasks %}
+        <li class="list-group-item">{{ task.description }} ({{ task.due_date }})</li>
+        {% else %}
+        <li class="list-group-item">No tasks found.</li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
 {% endblock %}
