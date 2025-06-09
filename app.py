@@ -19,6 +19,8 @@ from flask_login import (
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import os
+import re
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///crm.db"
@@ -66,6 +68,15 @@ def inject_translator():
         return t.get(key, key)
 
     return {"_": _}
+
+
+@app.context_processor
+def inject_notification_count():
+    if current_user.is_authenticated:
+        count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    else:
+        count = 0
+    return {"unread_notifications": count}
 
 
 @login_manager.user_loader
@@ -175,6 +186,46 @@ class Task(db.Model):
     record_id = db.Column(db.Integer)
 
 
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    model = db.Column(db.String(50))
+    record_id = db.Column(db.Integer)
+    content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship("User")
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    message_id = db.Column(db.Integer, db.ForeignKey("message.id"))
+    model = db.Column(db.String(50))
+    record_id = db.Column(db.Integer)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship("User")
+    message = db.relationship("Message")
+
+
+def record_url(model, record_id):
+    mapping = {
+        "leads": ("show_lead", "lead_id"),
+        "accounts": ("show_account", "account_id"),
+        "contacts": ("show_contact", "contact_id"),
+        "deals": ("show_deal", "deal_id"),
+        "products": ("show_product", "product_id"),
+        "pricebooks": ("show_pricebook", "pricebook_id"),
+        "pricebook_entries": ("show_pricebook_entry", "entry_id"),
+        "quotes": ("show_quote", "quote_id"),
+        "quote_line_items": ("show_quote_line_item", "item_id"),
+    }
+    view, param = mapping.get(model, (None, None))
+    if view:
+        return url_for(view, **{param: record_id})
+    return url_for("dashboard")
+
+
 @app.before_request
 def require_login():
     if (
@@ -254,8 +305,19 @@ def create_lead():
 def show_lead(lead_id):
     lead = Lead.query.get_or_404(lead_id)
     tasks = Task.query.filter_by(model="leads", record_id=lead_id).all()
+    messages = (
+        Message.query.filter_by(model="leads", record_id=lead_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
-        "lead_detail.html", lead=lead, tasks=tasks, title="Lead Detail"
+        "lead_detail.html",
+        lead=lead,
+        tasks=tasks,
+        messages=messages,
+        model="leads",
+        record_id=lead_id,
+        title="Lead Detail",
     )
 
 
@@ -344,8 +406,19 @@ def create_account():
 def show_account(account_id):
     account = Account.query.get_or_404(account_id)
     tasks = Task.query.filter_by(model="accounts", record_id=account_id).all()
+    messages = (
+        Message.query.filter_by(model="accounts", record_id=account_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
-        "account_detail.html", account=account, tasks=tasks, title="Account Detail"
+        "account_detail.html",
+        account=account,
+        tasks=tasks,
+        messages=messages,
+        model="accounts",
+        record_id=account_id,
+        title="Account Detail",
     )
 
 
@@ -407,8 +480,19 @@ def create_contact():
 def show_contact(contact_id):
     contact = Contact.query.get_or_404(contact_id)
     tasks = Task.query.filter_by(model="contacts", record_id=contact_id).all()
+    messages = (
+        Message.query.filter_by(model="contacts", record_id=contact_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
-        "contact_detail.html", contact=contact, tasks=tasks, title="Contact Detail"
+        "contact_detail.html",
+        contact=contact,
+        tasks=tasks,
+        messages=messages,
+        model="contacts",
+        record_id=contact_id,
+        title="Contact Detail",
     )
 
 
@@ -484,8 +568,19 @@ def create_deal():
 def show_deal(deal_id):
     deal = Deal.query.get_or_404(deal_id)
     tasks = Task.query.filter_by(model="deals", record_id=deal_id).all()
+    messages = (
+        Message.query.filter_by(model="deals", record_id=deal_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
-        "deal_detail.html", deal=deal, tasks=tasks, title="Deal Detail"
+        "deal_detail.html",
+        deal=deal,
+        tasks=tasks,
+        messages=messages,
+        model="deals",
+        record_id=deal_id,
+        title="Deal Detail",
     )
 
 
@@ -547,8 +642,19 @@ def create_product():
 def show_product(product_id):
     product = Product.query.get_or_404(product_id)
     tasks = Task.query.filter_by(model="products", record_id=product_id).all()
+    messages = (
+        Message.query.filter_by(model="products", record_id=product_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
-        "product_detail.html", product=product, tasks=tasks, title="Product Detail"
+        "product_detail.html",
+        product=product,
+        tasks=tasks,
+        messages=messages,
+        model="products",
+        record_id=product_id,
+        title="Product Detail",
     )
 
 
@@ -603,10 +709,18 @@ def create_pricebook():
 def show_pricebook(pricebook_id):
     pricebook = Pricebook.query.get_or_404(pricebook_id)
     tasks = Task.query.filter_by(model="pricebooks", record_id=pricebook_id).all()
+    messages = (
+        Message.query.filter_by(model="pricebooks", record_id=pricebook_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
         "pricebook_detail.html",
         pricebook=pricebook,
         tasks=tasks,
+        messages=messages,
+        model="pricebooks",
+        record_id=pricebook_id,
         title="Pricebook Detail",
     )
 
@@ -675,10 +789,18 @@ def create_pricebook_entry():
 def show_pricebook_entry(entry_id):
     entry = PriceBookEntry.query.get_or_404(entry_id)
     tasks = Task.query.filter_by(model="pricebook_entries", record_id=entry_id).all()
+    messages = (
+        Message.query.filter_by(model="pricebook_entries", record_id=entry_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
         "pricebook_entry_detail.html",
         entry=entry,
         tasks=tasks,
+        messages=messages,
+        model="pricebook_entries",
+        record_id=entry_id,
         title="Price Book Entry Detail",
     )
 
@@ -744,8 +866,19 @@ def create_quote():
 def show_quote(quote_id):
     quote = Quote.query.get_or_404(quote_id)
     tasks = Task.query.filter_by(model="quotes", record_id=quote_id).all()
+    messages = (
+        Message.query.filter_by(model="quotes", record_id=quote_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
-        "quote_detail.html", quote=quote, tasks=tasks, title="Quote Detail"
+        "quote_detail.html",
+        quote=quote,
+        tasks=tasks,
+        messages=messages,
+        model="quotes",
+        record_id=quote_id,
+        title="Quote Detail",
     )
 
 
@@ -812,10 +945,18 @@ def create_quote_line_item():
 def show_quote_line_item(item_id):
     item = QuoteLineItem.query.get_or_404(item_id)
     tasks = Task.query.filter_by(model="quote_line_items", record_id=item_id).all()
+    messages = (
+        Message.query.filter_by(model="quote_line_items", record_id=item_id)
+        .order_by(Message.created_at.desc())
+        .all()
+    )
     return render_template(
         "quote_line_item_detail.html",
         item=item,
         tasks=tasks,
+        messages=messages,
+        model="quote_line_items",
+        record_id=item_id,
         title="Quote Line Item Detail",
     )
 
@@ -893,6 +1034,59 @@ def create_task():
     db.session.add(task)
     db.session.commit()
     return redirect(url_for("list_tasks"))
+
+
+@app.route("/messages/create", methods=["POST"])
+@login_required
+def create_message():
+    content = request.form["content"]
+    model = request.form.get("model")
+    record_id = request.form.get("record_id")
+    message = Message(
+        user_id=current_user.id,
+        model=model,
+        record_id=record_id,
+        content=content,
+    )
+    db.session.add(message)
+    db.session.commit()
+
+    mentioned = set(re.findall(r"@(\w+)", content))
+    for username in mentioned:
+        user = User.query.filter_by(username=username).first()
+        if user:
+            db.session.add(
+                Notification(
+                    user_id=user.id,
+                    message=message,
+                    model=model,
+                    record_id=record_id,
+                )
+            )
+    db.session.commit()
+    return redirect(record_url(model, record_id))
+
+
+@app.route("/notifications")
+@login_required
+def list_notifications():
+    notes = (
+        Notification.query.filter_by(user_id=current_user.id)
+        .order_by(Notification.created_at.desc())
+        .all()
+    )
+    return render_template("notifications.html", notifications=notes, title="Notifications")
+
+
+@app.route("/notifications/<int:notif_id>")
+@login_required
+def view_notification(notif_id):
+    note = Notification.query.get_or_404(notif_id)
+    if note.user_id != current_user.id:
+        return redirect(url_for("list_notifications"))
+    note.is_read = True
+    db.session.commit()
+    return redirect(record_url(note.model, note.record_id))
 
 
 @app.route("/search")

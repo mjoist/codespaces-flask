@@ -32,6 +32,7 @@
                         {% if current_user.is_admin %}
                             <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_overview') }}"><i class="bi bi-gear"></i> Admin</a></li>
                         {% endif %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('list_notifications') }}"><i class="bi bi-bell"></i> Notifications{% if unread_notifications %} ({{ unread_notifications }}){% endif %}</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}"><i class="bi bi-translate"></i> {{ _('settings') }}</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
                     {% else %}
