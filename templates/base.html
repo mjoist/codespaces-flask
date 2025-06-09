@@ -15,14 +15,14 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_leads') }}"><i class="fa-solid fa-address-card"></i> {{ _('leads') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_accounts') }}"><i class="fa-solid fa-building"></i> {{ _('accounts') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_contacts') }}"><i class="fa-solid fa-user"></i> {{ _('contacts') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_deals') }}"><i class="fa-solid fa-handshake"></i> {{ _('deals') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_products') }}"><i class="fa-solid fa-box"></i> {{ _('products') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_pricebooks') }}"><i class="fa-solid fa-book"></i> {{ _('pricebooks') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_quotes') }}"><i class="fa-solid fa-file-invoice"></i> {{ _('quotes') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('list_tasks') }}"><i class="fa-solid fa-list"></i> {{ _('tasks') }}</a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_leads') }}" title="{{ _('leads') }}"><i class="fa-solid fa-address-card"></i></a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_accounts') }}" title="{{ _('accounts') }}"><i class="fa-solid fa-building"></i></a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_contacts') }}" title="{{ _('contacts') }}"><i class="fa-solid fa-user"></i></a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_deals') }}" title="{{ _('deals') }}"><i class="fa-solid fa-handshake"></i></a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_products') }}" title="{{ _('products') }}"><i class="fa-solid fa-box"></i></a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_pricebooks') }}" title="{{ _('pricebooks') }}"><i class="fa-solid fa-book"></i></a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_quotes') }}" title="{{ _('quotes') }}"><i class="fa-solid fa-file-invoice"></i></a></li>
+                    <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('list_tasks') }}" title="{{ _('tasks') }}"><i class="fa-solid fa-list"></i></a></li>
                 </ul>
                 <form class="d-flex" action="{{ url_for('global_search') }}" method="get">
                     <input class="form-control form-control-sm me-2" type="search" placeholder="{{ _('search') }}" name="q">
@@ -30,12 +30,12 @@
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                         {% if current_user.is_admin %}
-                            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_overview') }}"><i class="fa-solid fa-gear"></i> Admin</a></li>
+                            <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('admin_overview') }}" title="Admin"><i class="fa-solid fa-gear"></i></a></li>
                         {% endif %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('settings') }}"><i class="fa-solid fa-language"></i> {{ _('settings') }}</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+                        <li class="nav-item"><a class="btn btn-outline-light me-1" href="{{ url_for('settings') }}" title="{{ _('settings') }}"><i class="fa-solid fa-language"></i></a></li>
+                        <li class="nav-item"><a class="btn btn-outline-light" href="{{ url_for('logout') }}" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a></li>
                     {% else %}
-                        <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+                        <li class="nav-item"><a class="btn btn-outline-light" href="{{ url_for('login') }}" title="Login"><i class="fa-solid fa-right-to-bracket"></i></a></li>
                     {% endif %}
                 </ul>
             </div>

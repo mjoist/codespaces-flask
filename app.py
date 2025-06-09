@@ -177,8 +177,12 @@ class Task(db.Model):
 
 @app.before_request
 def require_login():
-    if request.endpoint not in ("login", "static") and not current_user.is_authenticated:
+    if (
+        request.endpoint not in ("login", "static")
+        and not current_user.is_authenticated
+    ):
         return redirect(url_for("login"))
+
 
 @app.route("/")
 def dashboard():
@@ -195,8 +199,6 @@ def dashboard():
     return render_template(
         "dashboard.html", counts=counts, tasks=tasks, title="Dashboard"
     )
-
-
 
 
 @app.route("/leads")
@@ -346,9 +348,7 @@ def show_account(account_id):
 @app.route("/accounts/<int:account_id>/edit")
 def edit_account(account_id):
     account = Account.query.get_or_404(account_id)
-    return render_template(
-        "edit_account.html", account=account, title="Edit Account"
-    )
+    return render_template("edit_account.html", account=account, title="Edit Account")
 
 
 @app.route("/accounts/<int:account_id>/update", methods=["POST"])
@@ -551,9 +551,7 @@ def show_product(product_id):
 @app.route("/products/<int:product_id>/edit")
 def edit_product(product_id):
     product = Product.query.get_or_404(product_id)
-    return render_template(
-        "edit_product.html", product=product, title="Edit Product"
-    )
+    return render_template("edit_product.html", product=product, title="Edit Product")
 
 
 @app.route("/products/<int:product_id>/update", methods=["POST"])
@@ -751,7 +749,9 @@ def show_quote(quote_id):
 def edit_quote(quote_id):
     quote = Quote.query.get_or_404(quote_id)
     deals = Deal.query.all()
-    return render_template("edit_quote.html", quote=quote, deals=deals, title="Edit Quote")
+    return render_template(
+        "edit_quote.html", quote=quote, deals=deals, title="Edit Quote"
+    )
 
 
 @app.route("/quotes/<int:quote_id>/update", methods=["POST"])
@@ -896,7 +896,10 @@ def global_search():
     q = request.args.get("q", "")
     like = f"%{q}%"
     results = {
-        "leads": [(l.name, url_for("show_lead", lead_id=l.id)) for l in Lead.query.filter(Lead.name.ilike(like)).all()],
+        "leads": [
+            (l.name, url_for("show_lead", lead_id=l.id))
+            for l in Lead.query.filter(Lead.name.ilike(like)).all()
+        ],
         "accounts": [
             (a.name, url_for("show_account", account_id=a.id))
             for a in Account.query.filter(Account.name.ilike(like)).all()
@@ -960,7 +963,6 @@ def admin_overview():
     )
 
 
-
 @app.route("/admin/users")
 @login_required
 def admin_users():
@@ -973,7 +975,6 @@ def admin_users():
         users=users,
         title=get_translations().get("user_management", "User Management"),
     )
-
 
 
 @app.route("/admin/users/create", methods=["POST"])
@@ -1069,6 +1070,30 @@ def api_update_status():
         return {"success": False}, 400
     db.session.commit()
     return {"success": True}
+
+
+@app.route("/api/record/<model>/<int:record_id>")
+def api_get_record(model, record_id):
+    if model == "lead":
+        record = Lead.query.get_or_404(record_id)
+    elif model == "account":
+        record = Account.query.get_or_404(record_id)
+    elif model == "contact":
+        record = Contact.query.get_or_404(record_id)
+    elif model == "deal":
+        record = Deal.query.get_or_404(record_id)
+    elif model == "product":
+        record = Product.query.get_or_404(record_id)
+    elif model == "pricebook":
+        record = Pricebook.query.get_or_404(record_id)
+    elif model == "quote":
+        record = Quote.query.get_or_404(record_id)
+    elif model == "task":
+        record = Task.query.get_or_404(record_id)
+    else:
+        return {"error": "model"}, 404
+    data = {k: v for k, v in record.__dict__.items() if k != "_sa_instance_state"}
+    return data
 
 
 with app.app_context():

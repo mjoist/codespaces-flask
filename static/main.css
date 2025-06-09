@@ -62,6 +62,12 @@ code {
     color: white;
     text-decoration: none;
 }
+.navbar .btn {
+    color: white;
+}
+.navbar .btn:hover {
+    color: #fff;
+}
 .content {
     padding: 1rem;
 }
@@ -106,3 +112,7 @@ th {
 
 input, select, textarea { color: #000; }
 .kanban-card { cursor: move; }
+
+.offcanvas-end {
+    width: 400px;
+}
