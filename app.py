@@ -861,7 +861,7 @@ def tasks_kanban():
     statuses = [s.value for s in StatusOption.query.filter_by(model="task").all()]
     columns = {s: Task.query.filter_by(status=s).all() for s in statuses}
     return render_template(
-        "kanban.html", columns=columns, title="Tasks Kanban"
+        "kanban.html", columns=columns, title="Tasks Kanban", model="task"
     )
 
 
@@ -953,10 +953,12 @@ def logout():
 def admin_overview():
     if not current_user.is_admin:
         return redirect(url_for("dashboard"))
+
     return render_template(
         "admin_overview.html",
         title=get_translations().get("admin_overview", "Admin Overview"),
     )
+
 
 
 @app.route("/admin/users")
@@ -965,11 +967,13 @@ def admin_users():
     if not current_user.is_admin:
         return redirect(url_for("dashboard"))
     users = User.query.all()
+
     return render_template(
         "admin.html",
         users=users,
         title=get_translations().get("user_management", "User Management"),
     )
+
 
 
 @app.route("/admin/users/create", methods=["POST"])
@@ -1057,6 +1061,10 @@ def api_update_status():
         record = Deal.query.get(record_id)
         if record:
             record.stage = status
+    elif model == "task":
+        record = Task.query.get(record_id)
+        if record:
+            record.status = status
     else:
         return {"success": False}, 400
     db.session.commit()
