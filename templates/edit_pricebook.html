@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Edit Pricebook</h1>
+<form action="{{ url_for('update_pricebook', pricebook_id=pricebook.id) }}" method="post">
+<p><input type="text" name="name" value="{{ pricebook.name }}" required></p>
+<p><button type="submit">Update</button></p>
+</form>
+{% endblock %}

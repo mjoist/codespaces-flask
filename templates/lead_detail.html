@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ lead.name }}</h1>
+<p>Email: {{ lead.email }}</p>
+<p>Phone: {{ lead.phone }}</p>
+<p>Status: {{ lead.status }}</p>
+<p><a class="App-link" href="{{ url_for('edit_lead', lead_id=lead.id) }}">Edit</a></p>
+<p><a class="App-link" href="{{ url_for('new_task', model='leads', record_id=lead.id) }}">Add Task</a></p>
+<h2>Tasks</h2>
+<ul>
+{% for task in tasks %}
+<li>{{ task.description }} ({{ task.due_date }})</li>
+{% else %}
+<li>No tasks found.</li>
+{% endfor %}
+</ul>
+{% endblock %}

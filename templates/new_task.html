@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>New Task</h1>
+<form action="{{ url_for('create_task') }}" method="post">
+<input type="hidden" name="model" value="{{ model }}">
+<input type="hidden" name="record_id" value="{{ record_id }}">
+<p><input type="text" name="description" placeholder="Description" required></p>
+<p><input type="date" name="due_date"></p>
+<p><button type="submit">Create</button></p>
+</form>
+{% endblock %}

@@ -86,9 +86,27 @@ class QuoteLineItem(db.Model):
     quote = db.relationship("Quote", backref=db.backref("line_items", lazy=True))
     product = db.relationship("Product")
 
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(255))
+    due_date = db.Column(db.String(50))
+    model = db.Column(db.String(50))
+    record_id = db.Column(db.Integer)
+
 @app.route("/")
-def hello_world():
-    return render_template("index.html", title="Hello")
+def dashboard():
+    counts = {
+        "customers": Customer.query.count(),
+        "leads": Lead.query.count(),
+        "accounts": Account.query.count(),
+        "contacts": Contact.query.count(),
+        "deals": Deal.query.count(),
+        "products": Product.query.count(),
+        "pricebooks": Pricebook.query.count(),
+        "quotes": Quote.query.count(),
+    }
+    return render_template("dashboard.html", counts=counts, title="Dashboard")
 
 
 @app.route("/customers")
@@ -112,6 +130,37 @@ def create_customer():
     db.session.add(customer)
     db.session.commit()
     return redirect(url_for("list_customers"))
+
+
+@app.route("/customers/<int:customer_id>")
+def show_customer(customer_id):
+    customer = Customer.query.get_or_404(customer_id)
+    tasks = Task.query.filter_by(model="customers", record_id=customer_id).all()
+    return render_template(
+        "customer_detail.html",
+        customer=customer,
+        tasks=tasks,
+        title="Customer Detail",
+    )
+
+
+@app.route("/customers/<int:customer_id>/edit")
+def edit_customer(customer_id):
+    customer = Customer.query.get_or_404(customer_id)
+    return render_template(
+        "edit_customer.html", customer=customer, title="Edit Customer"
+    )
+
+
+@app.route("/customers/<int:customer_id>/update", methods=["POST"])
+def update_customer(customer_id):
+    customer = Customer.query.get_or_404(customer_id)
+    customer.name = request.form["name"]
+    customer.email = request.form.get("email")
+    customer.phone = request.form.get("phone")
+    customer.notes = request.form.get("notes")
+    db.session.commit()
+    return redirect(url_for("show_customer", customer_id=customer.id))
 
 
 @app.route("/leads")
@@ -138,6 +187,32 @@ def create_lead():
     return redirect(url_for("list_leads"))
 
 
+@app.route("/leads/<int:lead_id>")
+def show_lead(lead_id):
+    lead = Lead.query.get_or_404(lead_id)
+    tasks = Task.query.filter_by(model="leads", record_id=lead_id).all()
+    return render_template(
+        "lead_detail.html", lead=lead, tasks=tasks, title="Lead Detail"
+    )
+
+
+@app.route("/leads/<int:lead_id>/edit")
+def edit_lead(lead_id):
+    lead = Lead.query.get_or_404(lead_id)
+    return render_template("edit_lead.html", lead=lead, title="Edit Lead")
+
+
+@app.route("/leads/<int:lead_id>/update", methods=["POST"])
+def update_lead(lead_id):
+    lead = Lead.query.get_or_404(lead_id)
+    lead.name = request.form["name"]
+    lead.email = request.form.get("email")
+    lead.phone = request.form.get("phone")
+    lead.status = request.form.get("status")
+    db.session.commit()
+    return redirect(url_for("show_lead", lead_id=lead.id))
+
+
 @app.route("/accounts")
 def list_accounts():
     accounts = Account.query.all()
@@ -158,6 +233,32 @@ def create_account():
     db.session.add(account)
     db.session.commit()
     return redirect(url_for("list_accounts"))
+
+
+@app.route("/accounts/<int:account_id>")
+def show_account(account_id):
+    account = Account.query.get_or_404(account_id)
+    tasks = Task.query.filter_by(model="accounts", record_id=account_id).all()
+    return render_template(
+        "account_detail.html", account=account, tasks=tasks, title="Account Detail"
+    )
+
+
+@app.route("/accounts/<int:account_id>/edit")
+def edit_account(account_id):
+    account = Account.query.get_or_404(account_id)
+    return render_template(
+        "edit_account.html", account=account, title="Edit Account"
+    )
+
+
+@app.route("/accounts/<int:account_id>/update", methods=["POST"])
+def update_account(account_id):
+    account = Account.query.get_or_404(account_id)
+    account.name = request.form["name"]
+    account.industry = request.form.get("industry")
+    db.session.commit()
+    return redirect(url_for("show_account", account_id=account.id))
 
 
 @app.route("/contacts")
@@ -185,6 +286,35 @@ def create_contact():
     return redirect(url_for("list_contacts"))
 
 
+@app.route("/contacts/<int:contact_id>")
+def show_contact(contact_id):
+    contact = Contact.query.get_or_404(contact_id)
+    tasks = Task.query.filter_by(model="contacts", record_id=contact_id).all()
+    return render_template(
+        "contact_detail.html", contact=contact, tasks=tasks, title="Contact Detail"
+    )
+
+
+@app.route("/contacts/<int:contact_id>/edit")
+def edit_contact(contact_id):
+    contact = Contact.query.get_or_404(contact_id)
+    accounts = Account.query.all()
+    return render_template(
+        "edit_contact.html", contact=contact, accounts=accounts, title="Edit Contact"
+    )
+
+
+@app.route("/contacts/<int:contact_id>/update", methods=["POST"])
+def update_contact(contact_id):
+    contact = Contact.query.get_or_404(contact_id)
+    contact.name = request.form["name"]
+    contact.email = request.form.get("email")
+    contact.phone = request.form.get("phone")
+    contact.account_id = request.form.get("account_id") or None
+    db.session.commit()
+    return redirect(url_for("show_contact", contact_id=contact.id))
+
+
 @app.route("/deals")
 def list_deals():
     deals = Deal.query.all()
@@ -210,6 +340,33 @@ def create_deal():
     return redirect(url_for("list_deals"))
 
 
+@app.route("/deals/<int:deal_id>")
+def show_deal(deal_id):
+    deal = Deal.query.get_or_404(deal_id)
+    tasks = Task.query.filter_by(model="deals", record_id=deal_id).all()
+    return render_template(
+        "deal_detail.html", deal=deal, tasks=tasks, title="Deal Detail"
+    )
+
+
+@app.route("/deals/<int:deal_id>/edit")
+def edit_deal(deal_id):
+    deal = Deal.query.get_or_404(deal_id)
+    accounts = Account.query.all()
+    return render_template("edit_deal.html", deal=deal, accounts=accounts, title="Edit Deal")
+
+
+@app.route("/deals/<int:deal_id>/update", methods=["POST"])
+def update_deal(deal_id):
+    deal = Deal.query.get_or_404(deal_id)
+    deal.name = request.form["name"]
+    deal.amount = request.form.get("amount")
+    deal.stage = request.form.get("stage")
+    deal.account_id = request.form.get("account_id") or None
+    db.session.commit()
+    return redirect(url_for("show_deal", deal_id=deal.id))
+
+
 @app.route("/products")
 def list_products():
     products = Product.query.all()
@@ -232,6 +389,32 @@ def create_product():
     return redirect(url_for("list_products"))
 
 
+@app.route("/products/<int:product_id>")
+def show_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    tasks = Task.query.filter_by(model="products", record_id=product_id).all()
+    return render_template(
+        "product_detail.html", product=product, tasks=tasks, title="Product Detail"
+    )
+
+
+@app.route("/products/<int:product_id>/edit")
+def edit_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    return render_template(
+        "edit_product.html", product=product, title="Edit Product"
+    )
+
+
+@app.route("/products/<int:product_id>/update", methods=["POST"])
+def update_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    product.name = request.form["name"]
+    product.price = request.form.get("price")
+    db.session.commit()
+    return redirect(url_for("show_product", product_id=product.id))
+
+
 @app.route("/pricebooks")
 def list_pricebooks():
     pricebooks = Pricebook.query.all()
@@ -249,6 +432,34 @@ def create_pricebook():
     db.session.add(pricebook)
     db.session.commit()
     return redirect(url_for("list_pricebooks"))
+
+
+@app.route("/pricebooks/<int:pricebook_id>")
+def show_pricebook(pricebook_id):
+    pricebook = Pricebook.query.get_or_404(pricebook_id)
+    tasks = Task.query.filter_by(model="pricebooks", record_id=pricebook_id).all()
+    return render_template(
+        "pricebook_detail.html",
+        pricebook=pricebook,
+        tasks=tasks,
+        title="Pricebook Detail",
+    )
+
+
+@app.route("/pricebooks/<int:pricebook_id>/edit")
+def edit_pricebook(pricebook_id):
+    pricebook = Pricebook.query.get_or_404(pricebook_id)
+    return render_template(
+        "edit_pricebook.html", pricebook=pricebook, title="Edit Pricebook"
+    )
+
+
+@app.route("/pricebooks/<int:pricebook_id>/update", methods=["POST"])
+def update_pricebook(pricebook_id):
+    pricebook = Pricebook.query.get_or_404(pricebook_id)
+    pricebook.name = request.form["name"]
+    db.session.commit()
+    return redirect(url_for("show_pricebook", pricebook_id=pricebook.id))
 
 
 @app.route("/pricebook_entries")
@@ -283,6 +494,42 @@ def create_pricebook_entry():
     return redirect(url_for("list_pricebook_entries"))
 
 
+@app.route("/pricebook_entries/<int:entry_id>")
+def show_pricebook_entry(entry_id):
+    entry = PriceBookEntry.query.get_or_404(entry_id)
+    tasks = Task.query.filter_by(model="pricebook_entries", record_id=entry_id).all()
+    return render_template(
+        "pricebook_entry_detail.html",
+        entry=entry,
+        tasks=tasks,
+        title="Price Book Entry Detail",
+    )
+
+
+@app.route("/pricebook_entries/<int:entry_id>/edit")
+def edit_pricebook_entry(entry_id):
+    entry = PriceBookEntry.query.get_or_404(entry_id)
+    products = Product.query.all()
+    pricebooks = Pricebook.query.all()
+    return render_template(
+        "edit_pricebook_entry.html",
+        entry=entry,
+        products=products,
+        pricebooks=pricebooks,
+        title="Edit Price Book Entry",
+    )
+
+
+@app.route("/pricebook_entries/<int:entry_id>/update", methods=["POST"])
+def update_pricebook_entry(entry_id):
+    entry = PriceBookEntry.query.get_or_404(entry_id)
+    entry.product_id = request.form.get("product_id")
+    entry.pricebook_id = request.form.get("pricebook_id")
+    entry.unit_price = request.form.get("unit_price")
+    db.session.commit()
+    return redirect(url_for("show_pricebook_entry", entry_id=entry.id))
+
+
 @app.route("/quotes")
 def list_quotes():
     quotes = Quote.query.all()
@@ -304,6 +551,31 @@ def create_quote():
     db.session.add(quote)
     db.session.commit()
     return redirect(url_for("list_quotes"))
+
+
+@app.route("/quotes/<int:quote_id>")
+def show_quote(quote_id):
+    quote = Quote.query.get_or_404(quote_id)
+    tasks = Task.query.filter_by(model="quotes", record_id=quote_id).all()
+    return render_template(
+        "quote_detail.html", quote=quote, tasks=tasks, title="Quote Detail"
+    )
+
+
+@app.route("/quotes/<int:quote_id>/edit")
+def edit_quote(quote_id):
+    quote = Quote.query.get_or_404(quote_id)
+    deals = Deal.query.all()
+    return render_template("edit_quote.html", quote=quote, deals=deals, title="Edit Quote")
+
+
+@app.route("/quotes/<int:quote_id>/update", methods=["POST"])
+def update_quote(quote_id):
+    quote = Quote.query.get_or_404(quote_id)
+    quote.deal_id = request.form.get("deal_id")
+    quote.total = request.form.get("total")
+    db.session.commit()
+    return redirect(url_for("show_quote", quote_id=quote.id))
 
 
 @app.route("/quote_line_items")
@@ -335,6 +607,69 @@ def create_quote_line_item():
     db.session.add(item)
     db.session.commit()
     return redirect(url_for("list_quote_line_items"))
+
+
+@app.route("/quote_line_items/<int:item_id>")
+def show_quote_line_item(item_id):
+    item = QuoteLineItem.query.get_or_404(item_id)
+    tasks = Task.query.filter_by(model="quote_line_items", record_id=item_id).all()
+    return render_template(
+        "quote_line_item_detail.html",
+        item=item,
+        tasks=tasks,
+        title="Quote Line Item Detail",
+    )
+
+
+@app.route("/quote_line_items/<int:item_id>/edit")
+def edit_quote_line_item(item_id):
+    item = QuoteLineItem.query.get_or_404(item_id)
+    quotes = Quote.query.all()
+    products = Product.query.all()
+    return render_template(
+        "edit_quote_line_item.html",
+        item=item,
+        quotes=quotes,
+        products=products,
+        title="Edit Quote Line Item",
+    )
+
+
+@app.route("/quote_line_items/<int:item_id>/update", methods=["POST"])
+def update_quote_line_item(item_id):
+    item = QuoteLineItem.query.get_or_404(item_id)
+    item.quote_id = request.form.get("quote_id")
+    item.product_id = request.form.get("product_id")
+    item.quantity = request.form.get("quantity")
+    item.price = request.form.get("price")
+    db.session.commit()
+    return redirect(url_for("show_quote_line_item", item_id=item.id))
+
+
+@app.route("/tasks")
+def list_tasks():
+    tasks = Task.query.all()
+    return render_template("tasks.html", tasks=tasks, title="Tasks")
+
+
+@app.route("/tasks/new/<model>/<int:record_id>")
+def new_task(model, record_id):
+    return render_template(
+        "new_task.html", model=model, record_id=record_id, title="New Task"
+    )
+
+
+@app.route("/tasks/create", methods=["POST"])
+def create_task():
+    task = Task(
+        description=request.form["description"],
+        due_date=request.form.get("due_date"),
+        model=request.form.get("model"),
+        record_id=request.form.get("record_id"),
+    )
+    db.session.add(task)
+    db.session.commit()
+    return redirect(url_for("list_tasks"))
 
 
 with app.app_context():
