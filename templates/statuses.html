@@ -2,14 +2,18 @@
 {% block content %}
 <h1>{{ _('manage_statuses') }}</h1>
 <p><a class="App-link" href="{{ url_for('admin_overview') }}">{{ _('back_admin') }}</a></p>
-<form action="{{ url_for('create_status') }}" method="post" class="two-column">
-    <p>
-        <input type="text" name="model" placeholder="Model" required>
-    </p>
-    <p>
-        <input type="text" name="value" placeholder="Status" required>
-    </p>
-    <p><button type="submit">Add</button></p>
+<form action="{{ url_for('create_status') }}" method="post" class="row g-3 mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Model</label>
+        <input type="text" name="model" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Status</label>
+        <input type="text" name="value" class="form-control" required>
+    </div>
+    <div class="col-md-4 align-self-end">
+        <button type="submit" class="btn btn-primary">Add</button>
+    </div>
 </form>
 <table>
     <tr><th>Model</th><th>Status</th><th>Actions</th></tr>

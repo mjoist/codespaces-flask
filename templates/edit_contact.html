@@ -1,15 +1,30 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Edit Contact</h1>
-<form action="{{ url_for('update_contact', contact_id=contact.id) }}" method="post" class="two-column">
-<p><input type="text" name="name" value="{{ contact.name }}" required></p>
-<p><input type="email" name="email" value="{{ contact.email }}"></p>
-<p><input type="text" name="phone" value="{{ contact.phone }}"></p>
-<p><input type="text" name="title" value="{{ contact.title }}"></p>
-{% from 'macros.html' import lookup %}
-<p>
-    {{ lookup('account_id', accounts, 'name', contact.account_id) }}
-</p>
-<p><button type="submit">Update</button></p>
+<form action="{{ url_for('update_contact', contact_id=contact.id) }}" method="post" class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Name *</label>
+        <input type="text" name="name" class="form-control" value="{{ contact.name }}" required>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" value="{{ contact.email }}">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Phone</label>
+        <input type="text" name="phone" class="form-control" value="{{ contact.phone }}">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Title</label>
+        <input type="text" name="title" class="form-control" value="{{ contact.title }}">
+    </div>
+    {% from 'macros.html' import lookup %}
+    <div class="col-md-6">
+        <label class="form-label">Account</label>
+        {{ lookup('account_id', accounts, 'name', contact.account_id) }}
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Update</button>
+    </div>
 </form>
 {% endblock %}
