@@ -124,7 +124,5 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (!window.ClassicEditor) {
-        document.querySelectorAll('textarea.mention-enabled').forEach(initMentions);
-    }
+    document.querySelectorAll('textarea.mention-enabled').forEach(initMentions);
 });
