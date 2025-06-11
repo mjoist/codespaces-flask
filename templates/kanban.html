@@ -4,7 +4,12 @@
 <div class="kanban row">
     {% for status, records in columns.items() %}
     <div class="kanban-column col" data-status="{{ status }}">
-        <h3>{{ status }}</h3>
+        <h3>
+            {{ status }}
+            {% if totals %}
+                ({{ '%.2f'|format(totals[status]) }})
+            {% endif %}
+        </h3>
         <div class="cards">
         {% for r in records %}
             <div class="card mb-2 kanban-card" draggable="true" data-id="{{ r.id }}" data-model="{{ model }}">

@@ -14,7 +14,7 @@
             <div class="card-body">
                 <h2 class="h5">Tasks</h2>
                 <form method="get" class="mb-2">
-                    <input type="text" class="form-control form-control-sm" name="q" value="{{ q or '' }}" placeholder="{{ _('search') }}">
+                    <input type="text" class="form-control form-control-sm" name="q_task" value="{{ q_task or '' }}" placeholder="{{ _('search') }}">
                 </form>
                 <table class="table table-sm">
                     <thead>
@@ -31,6 +31,32 @@
                         </tr>
                     {% else %}
                         <tr><td colspan="5">{{ _('none_found') }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Deals</h2>
+                <form method="get" class="mb-2">
+                    <input type="text" class="form-control form-control-sm" name="q_deal" value="{{ q_deal or '' }}" placeholder="{{ _('search') }}">
+                </form>
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>Name</th><th>Stage</th><th>Amount</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for deal in deals %}
+                        <tr>
+                            <td><a href="{{ url_for('show_deal', deal_id=deal.id) }}">{{ deal.name }}</a></td>
+                            <td>{{ deal.stage }}</td>
+                            <td>{{ deal.amount }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="3">{{ _('none_found') }}</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

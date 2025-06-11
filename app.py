@@ -245,7 +245,8 @@ def require_login():
 
 @app.route("/")
 def dashboard():
-    q = request.args.get("q", "")
+    q_task = request.args.get("q_task", "")
+    q_deal = request.args.get("q_deal", "")
     counts = {
         "leads": Lead.query.count(),
         "accounts": Account.query.count(),
@@ -256,11 +257,23 @@ def dashboard():
         "quotes": Quote.query.count(),
     }
     query = Task.query
-    if q:
-        query = query.filter(Task.description.ilike(f"%{q}%"))
+    if q_task:
+        query = query.filter(Task.description.ilike(f"%{q_task}%"))
     tasks = query.all()
+
+    deal_query = Deal.query
+    if q_deal:
+        deal_query = deal_query.filter(Deal.name.ilike(f"%{q_deal}%"))
+    deals = deal_query.all()
+
     return render_template(
-        "dashboard.html", counts=counts, tasks=tasks, q=q, title="Dashboard"
+        "dashboard.html",
+        counts=counts,
+        tasks=tasks,
+        deals=deals,
+        q_task=q_task,
+        q_deal=q_deal,
+        title="Dashboard",
     )
 
 
@@ -544,8 +557,18 @@ def list_deals():
 def deals_kanban():
     statuses = [s.value for s in StatusOption.query.filter_by(model="deal").all()]
     columns = {s: Deal.query.filter_by(stage=s).all() for s in statuses}
+    totals = {
+        s: db.session.query(db.func.coalesce(db.func.sum(Deal.amount), 0))
+        .filter_by(stage=s)
+        .scalar()
+        for s in statuses
+    }
     return render_template(
-        "kanban.html", columns=columns, title="Deals Kanban", model="deal"
+        "kanban.html",
+        columns=columns,
+        totals=totals,
+        title="Deals Kanban",
+        model="deal",
     )
 
 
